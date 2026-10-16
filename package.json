@@ -1,0 +1,46 @@
+{
+  "name": "vinpearl-iphone-automation-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop manager for authorized jailbroken iPhones over SSH",
+  "main": "dist-electron/src/main/index.js",
+  "scripts": {
+    "dev": "node scripts/dev.cjs",
+    "build": "tsc -p tsconfig.node.json && vite build",
+    "start": "node scripts/run-electron.cjs",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "package:win": "npm run build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@types/sql.js": "^1.4.9",
+    "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^36.3.2",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "build": {
+    "appId": "com.vinpearl.iphone-automation-manager",
+    "productName": "Vinpearl iPhone Manager",
+    "asarUnpack": [
+      "node_modules/sql.js/dist/sql-wasm.wasm"
+    ],
+    "files": [
+      "dist-renderer/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "node_modules/sql.js/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
