@@ -1,10 +1,13 @@
 # Vinpearl iPhone Automation Manager
 
-Ứng dụng desktop Windows để quản lý nhiều iPhone jailbreak qua SSH, kiểm tra kết nối và chạy workflow có kiểm soát. Repository hiện có skeleton Electron + React + TypeScript cho MVP Device Manager.
+Ứng dụng desktop Windows để quản lý nhiều iPhone jailbreak qua SSH, kiểm tra kết nối và chạy workflow có kiểm soát. Repository hiện có Electron + React + TypeScript cho MVP Device Manager và Workflow Preview Runner.
 
 ## Tài liệu
 
 - [Kế hoạch triển khai nghiệp vụ](docs/01-ke-hoach-trien-khai.md)
+- [Phân tích action và script VinClub](docs/02-phan-tich-action-vinclub.md)
+- [Module script đa địa điểm](docs/03-script-da-dia-diem.md)
+- [Quy trình setup thiết bị và engine](docs/04-quy-trinh-setup-thiet-bi-va-engine.md)
 
 ## Chạy local
 
@@ -20,7 +23,7 @@ npm run build
 npm run package:win
 ```
 
-Database MVP được lưu local bằng SQLite WASM (`sql.js`) để không phụ thuộc Visual Studio C++ toolchain khi khởi tạo dự án.
+Database MVP được lưu local bằng SQLite WASM (`sql.js`) để không phụ thuộc Visual Studio C++ toolchain khi khởi tạo dự án. SSH command engine dùng `ssh2` trong main process, có host fingerprint verification và output/timeout guard.
 
 ## Định hướng kiến trúc
 

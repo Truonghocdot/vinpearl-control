@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import type { Device } from './types';
+import WorkflowPanel from './WorkflowPanel';
 
 const emptyForm = { name: '', host: '', port: 22, username: 'root' };
 
@@ -15,10 +16,15 @@ export default function App() {
   const [isFormOpen, setFormOpen] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [view, setView] = useState<'overview' | 'workflows'>('overview');
+  const [workflowCount, setWorkflowCount] = useState(0);
 
   useEffect(() => {
     window.desktopApi.listDevices().then(setDevices).catch(() => {
       setError('Không thể đọc danh sách thiết bị.');
+    });
+    window.desktopApi.listWorkflows().then((items) => setWorkflowCount(items.length)).catch(() => {
+      setError('Không thể đọc workflow.');
     });
   }, []);
 
@@ -52,9 +58,9 @@ export default function App() {
           </div>
         </div>
         <nav className="nav-list" aria-label="Điều hướng chính">
-          <button className="nav-item active" type="button">⌂ <span>Tổng quan</span></button>
-          <button className="nav-item" type="button">▣ <span>Thiết bị</span><b>{devices.length}</b></button>
-          <button className="nav-item disabled" type="button">↗ <span>Workflows</span></button>
+          <button className={`nav-item ${view === 'overview' ? 'active' : ''}`} type="button" onClick={() => setView('overview')}>⌂ <span>Tổng quan</span></button>
+          <button className={`nav-item ${view === 'overview' ? '' : ''}`} type="button" onClick={() => setView('overview')}>▣ <span>Thiết bị</span><b>{devices.length}</b></button>
+          <button className={`nav-item ${view === 'workflows' ? 'active' : ''}`} type="button" onClick={() => setView('workflows')}>↗ <span>Workflows</span></button>
           <button className="nav-item disabled" type="button">◷ <span>Lịch chạy</span></button>
           <button className="nav-item disabled" type="button">≡ <span>Nhật ký</span></button>
         </nav>
@@ -67,8 +73,8 @@ export default function App() {
       <main className="main-content">
         <header className="topbar">
           <div>
-            <p className="eyebrow">WORKSPACE / TỔNG QUAN</p>
-            <h1>Quản lý thiết bị</h1>
+            <p className="eyebrow">WORKSPACE / {view === 'workflows' ? 'WORKFLOWS' : 'TỔNG QUAN'}</p>
+            <h1>{view === 'workflows' ? 'Luồng tự động hóa' : 'Quản lý thiết bị'}</h1>
           </div>
           <div className="topbar-meta">
             <span className="environment-tag">LOCAL</span>
@@ -76,10 +82,11 @@ export default function App() {
           </div>
         </header>
 
+        {view === 'workflows' ? <WorkflowPanel /> : <>
         <section className="stats-grid" aria-label="Tổng quan hệ thống">
           <div className="stat-card"><span>Tổng thiết bị</span><strong>{devices.length}</strong><small>Đã khai báo trong workspace</small></div>
           <div className="stat-card"><span>Đang hoạt động</span><strong>0</strong><small>Chưa chạy SSH health check</small></div>
-          <div className="stat-card"><span>Workflow</span><strong>0</strong><small>Sẵn sàng ở phase tiếp theo</small></div>
+          <div className="stat-card"><span>Workflow</span><strong>{workflowCount}</strong><small>Workflow đã seed trong workspace</small></div>
           <div className="stat-card"><span>Job hôm nay</span><strong>0</strong><small>Chưa có lịch chạy</small></div>
         </section>
 
@@ -122,6 +129,7 @@ export default function App() {
           <span className="notice-icon">i</span>
           <div><strong>MVP đang ở bước Device Manager.</strong><span>SSH host key verification và health check sẽ được tích hợp ở phase tiếp theo.</span></div>
         </section>
+        </>}
       </main>
 
       {isFormOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setFormOpen(false); }}>
