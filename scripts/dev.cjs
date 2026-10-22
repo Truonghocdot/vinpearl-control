@@ -5,10 +5,20 @@ const { spawn } = require('node:child_process');
 delete process.env.ELECTRON_RUN_AS_NODE;
 
 const viteCli = path.join(path.dirname(require.resolve('vite')), '../../bin/vite.js');
-const vite = spawn(process.execPath, [viteCli, '--host', '127.0.0.1'], {
-  env: process.env,
-  stdio: 'inherit',
-});
+const tscCli = path.join(path.dirname(require.resolve('typescript')), '../bin/tsc');
+
+function run(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { env: process.env, stdio: 'inherit' });
+    child.once('error', reject);
+    child.once('exit', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Command failed: ${command} ${args.join(' ')}`));
+    });
+  });
+}
+
+let vite;
 
 let electron;
 let shuttingDown = false;
@@ -16,7 +26,7 @@ let shuttingDown = false;
 function stop() {
   if (shuttingDown) return;
   shuttingDown = true;
-  vite.kill();
+  vite?.kill();
   electron?.kill();
 }
 
@@ -53,7 +63,14 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-waitForVite()
+run(process.execPath, [tscCli, '-p', 'tsconfig.node.json'])
+  .then(() => {
+    vite = spawn(process.execPath, [viteCli, '--host', '127.0.0.1'], {
+      env: process.env,
+      stdio: 'inherit',
+    });
+    return waitForVite();
+  })
   .then(() => {
     electron = spawn(require('electron'), ['.'], {
       env: process.env,

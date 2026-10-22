@@ -2,184 +2,75 @@ import fs from 'node:fs';
 import path from 'node:path';
 import initSqlJs, { type Database } from 'sql.js';
 import { vinClubWorkflow } from './workflow-template';
-import type { WorkflowDefinition, WorkflowRun, WorkflowSummary } from './workflow-runner';
+import type { WorkflowDefinition, WorkflowLog, WorkflowRun, WorkflowSummary } from './workflow-runner';
 
-export type Device = {
-  id: number;
-  name: string;
-  host: string;
-  port: number;
-  username: string;
-  status: 'unknown' | 'online' | 'offline';
-  lastCheckedAt: string | null;
-};
+export type DeviceStatus = 'unknown' | 'ready' | 'offline' | 'busy' | 'error';
+export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: 'usb'; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null };
+export type DeviceInput = Pick<Device, 'displayName' | 'udid' | 'bundleId'> & { wdaLocalPort?: number };
+export type Account = { id: number; displayName: string; username: string; credentialRef: string; status: 'active' | 'disabled'; createdAt: string };
+export type AccountInput = Pick<Account, 'displayName' | 'username' | 'credentialRef'> & { password?: string };
+export type CampaignTarget = { deviceId: number; accountId: number };
+export type Campaign = { id: number; name: string; workflowId: string; variables: Record<string, unknown>; targets: CampaignTarget[]; status: 'draft' | 'active' | 'archived'; createdAt: string; updatedAt: string };
+export type CampaignInput = Pick<Campaign, 'name' | 'workflowId' | 'variables' | 'targets'> & { status?: Campaign['status'] };
+export type JobRunSummary = Pick<WorkflowRun, 'id' | 'workflowId' | 'deviceId' | 'accountId' | 'campaignId' | 'engine' | 'status' | 'startedAt' | 'finishedAt'> & { workflowName: string; deviceName: string; accountName: string; campaignName: string | null };
 
-type DeviceInput = Pick<Device, 'name' | 'host' | 'port' | 'username'>;
-
-let database: Database;
-let databasePath: string;
+let database: Database; let databasePath: string; let artifactPath: string;
 
 export async function initializeDatabase(userDataPath: string) {
-  databasePath = path.join(userDataPath, 'vinpearl.sqlite');
-  const unpackedSqlPath = path.join(
-    process.resourcesPath,
-    'app.asar.unpacked',
-    'node_modules',
-    'sql.js',
-    'dist',
-  );
-  const sqlPath = fs.existsSync(unpackedSqlPath)
-    ? unpackedSqlPath
-    : path.dirname(require.resolve('sql.js'));
-  const SQL = await initSqlJs({
-    locateFile: (file) => path.join(sqlPath, file),
-  });
-  const existingDatabase = fs.existsSync(databasePath)
-    ? new Uint8Array(fs.readFileSync(databasePath))
-    : undefined;
-  database = existingDatabase ? new SQL.Database(existingDatabase) : new SQL.Database();
+  databasePath = path.join(userDataPath, 'vinpearl.sqlite'); artifactPath = path.join(userDataPath, 'artifacts'); archiveLegacyDatabase();
+  const unpackedSqlPath = process.resourcesPath ? path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'sql.js', 'dist') : '';
+  const sqlPath = fs.existsSync(unpackedSqlPath) ? unpackedSqlPath : path.dirname(require.resolve('sql.js'));
+  const SQL = await initSqlJs({ locateFile: (file) => path.join(sqlPath, file) });
+  database = fs.existsSync(databasePath) ? new SQL.Database(new Uint8Array(fs.readFileSync(databasePath))) : new SQL.Database();
   database.run(`
-    CREATE TABLE IF NOT EXISTS devices (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      host TEXT NOT NULL,
-      port INTEGER NOT NULL DEFAULT 22,
-      username TEXT NOT NULL,
-      host_fingerprint TEXT,
-      status TEXT NOT NULL DEFAULT 'unknown',
-      last_checked_at TEXT,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS workflows (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      version INTEGER NOT NULL,
-      description TEXT,
-      definition_json TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS workflow_runs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      workflow_id TEXT NOT NULL,
-      status TEXT NOT NULL,
-      started_at TEXT NOT NULL,
-      finished_at TEXT NOT NULL,
-      logs_json TEXT NOT NULL,
-      FOREIGN KEY (workflow_id) REFERENCES workflows(id)
-    );
+    PRAGMA foreign_keys = ON;
+    CREATE TABLE IF NOT EXISTS devices (id INTEGER PRIMARY KEY AUTOINCREMENT, display_name TEXT NOT NULL, udid TEXT NOT NULL UNIQUE, bundle_id TEXT NOT NULL, connection_type TEXT NOT NULL CHECK(connection_type = 'usb'), status TEXT NOT NULL DEFAULT 'unknown', pairing_status TEXT NOT NULL DEFAULT 'unknown', capabilities_json TEXT NOT NULL DEFAULT '[]', wda_local_port INTEGER NOT NULL UNIQUE, last_checked_at TEXT, last_error TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE IF NOT EXISTS accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, display_name TEXT NOT NULL, username TEXT NOT NULL, credential_ref TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT 'active', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE IF NOT EXISTS workflows (id TEXT PRIMARY KEY, name TEXT NOT NULL, version INTEGER NOT NULL, description TEXT, definition_json TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE IF NOT EXISTS campaigns (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, workflow_id TEXT NOT NULL, variables_json TEXT NOT NULL DEFAULT '{}', status TEXT NOT NULL DEFAULT 'draft', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (workflow_id) REFERENCES workflows(id));
+    CREATE TABLE IF NOT EXISTS campaign_targets (campaign_id INTEGER NOT NULL, device_id INTEGER NOT NULL, account_id INTEGER NOT NULL, PRIMARY KEY (campaign_id, device_id, account_id), FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE, FOREIGN KEY (device_id) REFERENCES devices(id), FOREIGN KEY (account_id) REFERENCES accounts(id));
+    CREATE TABLE IF NOT EXISTS job_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, workflow_id TEXT NOT NULL, device_id INTEGER NOT NULL, account_id INTEGER NOT NULL, campaign_id INTEGER, engine TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT NOT NULL, session_id TEXT, logs_json TEXT NOT NULL, FOREIGN KEY (workflow_id) REFERENCES workflows(id), FOREIGN KEY (device_id) REFERENCES devices(id), FOREIGN KEY (account_id) REFERENCES accounts(id), FOREIGN KEY (campaign_id) REFERENCES campaigns(id));
+    CREATE TABLE IF NOT EXISTS job_steps (id INTEGER PRIMARY KEY AUTOINCREMENT, job_run_id INTEGER NOT NULL, step_number INTEGER NOT NULL, step_name TEXT NOT NULL, action_type TEXT NOT NULL, status TEXT NOT NULL, message TEXT NOT NULL, occurred_at TEXT NOT NULL, screenshot_path TEXT, FOREIGN KEY (job_run_id) REFERENCES job_runs(id));
   `);
-  seedWorkflows();
-  persistDatabase();
+  migrateDeviceCredentials(); migrateUdidCase(); migrateJobRunColumns(); seedWorkflows(); persistDatabase();
 }
 
-export function listDevices(): Device[] {
-  const result = database.exec(`
-    SELECT id, name, host, port, username,
-      status, last_checked_at AS lastCheckedAt
-    FROM devices
-    ORDER BY updated_at DESC, id DESC
-  `)[0];
-  if (!result) return [];
-  return result.values.map((values) => Object.fromEntries(
-    result.columns.map((column, index) => [column, values[index]]),
-  )) as Device[];
-}
+export function listDevices(): Device[] { const result = database.exec(`SELECT id, display_name AS displayName, udid, bundle_id AS bundleId, connection_type AS connectionType, status, pairing_status AS pairingStatus, capabilities_json AS capabilitiesJson, wda_local_port AS wdaLocalPort, last_checked_at AS lastCheckedAt, last_error AS lastError FROM devices ORDER BY updated_at DESC, id DESC`)[0]; return result ? result.values.map((values) => { const row = Object.fromEntries(result.columns.map((column, index) => [column, values[index]])); return { ...row, capabilities: JSON.parse(String(row.capabilitiesJson ?? '[]')) } as Device; }) : []; }
+export function getDevice(id: number) { const device = listDevices().find((item) => item.id === id); if (!device) throw new Error('Thiết bị không tồn tại.'); return device; }
+export function createDevice(input: DeviceInput): Device { if (!input.displayName?.trim() || !isUdid(input.udid) || !input.bundleId?.trim()) throw new Error('Tên, UDID Apple hợp lệ và bundle ID là bắt buộc.'); const port = input.wdaLocalPort ?? nextWdaPort(); if (!Number.isInteger(port) || port < 8100 || port > 65535) throw new Error('WDA local port phải từ 8100 đến 65535.'); const statement = database.prepare('INSERT INTO devices (display_name, udid, bundle_id, connection_type, wda_local_port) VALUES (?, ?, ?, ?, ?)'); try { statement.run([input.displayName.trim(), canonicalUdid(input.udid), input.bundleId.trim(), 'usb', port]); } finally { statement.free(); } const id = Number(database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0]); persistDatabase(); return getDevice(id); }
+export function updateDevice(id: number, input: DeviceInput): Device { getDevice(id); if (!input.displayName?.trim() || !isUdid(input.udid) || !input.bundleId?.trim()) throw new Error('Tên, UDID Apple hợp lệ và bundle ID là bắt buộc.'); const port = input.wdaLocalPort ?? getDevice(id).wdaLocalPort; const statement = database.prepare('UPDATE devices SET display_name = ?, udid = ?, bundle_id = ?, wda_local_port = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([input.displayName.trim(), canonicalUdid(input.udid), input.bundleId.trim(), port, id]); } finally { statement.free(); } persistDatabase(); return getDevice(id); }
+export function updateDeviceHealth(id: number, update: Pick<Device, 'status' | 'pairingStatus' | 'capabilities'> & { lastError?: string | null }) { const statement = database.prepare('UPDATE devices SET status = ?, pairing_status = ?, capabilities_json = ?, last_checked_at = ?, last_error = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([update.status, update.pairingStatus, JSON.stringify(update.capabilities), new Date().toISOString(), update.lastError ?? null, id]); } finally { statement.free(); } persistDatabase(); return getDevice(id); }
+export function setDeviceStatus(id: number, status: DeviceStatus, lastError: string | null = null) { const statement = database.prepare('UPDATE devices SET status = ?, last_error = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([status, lastError, id]); } finally { statement.free(); } persistDatabase(); return getDevice(id); }
 
-export function createDevice(input: DeviceInput): Device {
-  if (!input.name.trim() || !input.host.trim() || !input.username.trim()) {
-    throw new Error('Device name, host and username are required.');
-  }
-  if (!Number.isInteger(input.port) || input.port < 1 || input.port > 65535) {
-    throw new Error('SSH port must be between 1 and 65535.');
-  }
+export function listAccounts(): Account[] { const result = database.exec('SELECT id, display_name AS displayName, username, credential_ref AS credentialRef, status, created_at AS createdAt FROM accounts ORDER BY id DESC')[0]; return result ? result.values.map((values) => Object.fromEntries(result.columns.map((column, index) => [column, values[index]])) as Account) : []; }
+export function getAccount(id: number) { const account = listAccounts().find((item) => item.id === id); if (!account) throw new Error('Tài khoản không tồn tại.'); return account; }
+export function createAccount(input: AccountInput): Account { if (!input.displayName?.trim() || !input.username?.trim() || !input.credentialRef?.trim()) throw new Error('Tên, username và credential reference là bắt buộc.'); const statement = database.prepare('INSERT INTO accounts (display_name, username, credential_ref) VALUES (?, ?, ?)'); try { statement.run([input.displayName.trim(), input.username.trim(), input.credentialRef.trim()]); } finally { statement.free(); } const id = Number(database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0]); persistDatabase(); return getAccount(id); }
+export function updateAccount(id: number, input: AccountInput): Account { getAccount(id); if (!input.displayName?.trim() || !input.username?.trim() || !input.credentialRef?.trim()) throw new Error('Tên, username và credential reference là bắt buộc.'); const statement = database.prepare('UPDATE accounts SET display_name = ?, username = ?, credential_ref = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([input.displayName.trim(), input.username.trim(), input.credentialRef.trim(), id]); } finally { statement.free(); } persistDatabase(); return getAccount(id); }
+export function setAccountStatus(id: number, status: Account['status']) { getAccount(id); const statement = database.prepare('UPDATE accounts SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([status, id]); } finally { statement.free(); } persistDatabase(); return getAccount(id); }
 
-  const statement = database.prepare(`
-    INSERT INTO devices (name, host, port, username)
-    VALUES (?, ?, ?, ?)
-  `);
-  statement.run([input.name.trim(), input.host.trim(), input.port, input.username.trim()]);
-  statement.free();
-  const id = database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0] as number;
-  persistDatabase();
-  return listDevices().find((device) => device.id === id)!;
-}
+export function listWorkflows(): WorkflowSummary[] { const result = database.exec('SELECT id, name, version, description, definition_json FROM workflows ORDER BY updated_at DESC, id ASC')[0]; return result ? result.values.map((values) => { const row = Object.fromEntries(result.columns.map((column, index) => [column, values[index]])); const definition = JSON.parse(String(row.definition_json)) as WorkflowDefinition; return { id: String(row.id), name: String(row.name), version: Number(row.version), description: row.description ? String(row.description) : undefined, bundleId: definition.bundleId, stepCount: definition.steps.length }; }) : []; }
+export function getWorkflow(id: string): WorkflowDefinition { const statement = database.prepare('SELECT definition_json FROM workflows WHERE id = ?'); try { statement.bind([id]); if (!statement.step()) throw new Error('Workflow không tồn tại.'); return JSON.parse(String(statement.getAsObject().definition_json)) as WorkflowDefinition; } finally { statement.free(); } }
 
-export function closeDatabase() {
-  if (!database) return;
-  persistDatabase();
-  database.close();
-}
+export function listCampaigns(): Campaign[] { const result = database.exec('SELECT id, name, workflow_id AS workflowId, variables_json AS variablesJson, status, created_at AS createdAt, updated_at AS updatedAt FROM campaigns ORDER BY updated_at DESC, id DESC')[0]; if (!result) return []; return result.values.map((values) => { const row = Object.fromEntries(result.columns.map((column, index) => [column, values[index]])); return { id: Number(row.id), name: String(row.name), workflowId: String(row.workflowId), variables: JSON.parse(String(row.variablesJson)), status: String(row.status) as Campaign['status'], createdAt: String(row.createdAt), updatedAt: String(row.updatedAt), targets: listCampaignTargets(Number(row.id)) }; }); }
+export function getCampaign(id: number) { const campaign = listCampaigns().find((item) => item.id === id); if (!campaign) throw new Error('Campaign không tồn tại.'); return campaign; }
+export function createCampaign(input: CampaignInput): Campaign { validateCampaign(input); const statement = database.prepare('INSERT INTO campaigns (name, workflow_id, variables_json, status) VALUES (?, ?, ?, ?)'); try { statement.run([input.name.trim(), input.workflowId, JSON.stringify(input.variables), input.status ?? 'draft']); } finally { statement.free(); } const id = Number(database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0]); saveCampaignTargets(id, input.targets); persistDatabase(); return getCampaign(id); }
+export function updateCampaign(id: number, input: CampaignInput): Campaign { getCampaign(id); validateCampaign(input); const statement = database.prepare('UPDATE campaigns SET name = ?, workflow_id = ?, variables_json = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'); try { statement.run([input.name.trim(), input.workflowId, JSON.stringify(input.variables), input.status ?? 'draft', id]); } finally { statement.free(); } database.run(`DELETE FROM campaign_targets WHERE campaign_id = ${id}`); saveCampaignTargets(id, input.targets); persistDatabase(); return getCampaign(id); }
 
-export function listWorkflows(): WorkflowSummary[] {
-  const result = database.exec(`
-    SELECT id, name, version, description, definition_json
-    FROM workflows ORDER BY updated_at DESC, id ASC
-  `)[0];
-  if (!result) return [];
-  return result.values.map((values) => {
-    const row = Object.fromEntries(result.columns.map((column, index) => [column, values[index]]));
-    const definition = JSON.parse(String(row.definition_json)) as WorkflowDefinition;
-    return {
-      id: String(row.id),
-      name: String(row.name),
-      version: Number(row.version),
-      description: row.description ? String(row.description) : undefined,
-      stepCount: definition.steps.length,
-    };
-  });
-}
+export function saveJobRun(run: Omit<WorkflowRun, 'id'>, sessionId?: string): WorkflowRun { if (!run.deviceId || !run.accountId) throw new Error('Job phải có deviceId và accountId.'); const statement = database.prepare('INSERT INTO job_runs (workflow_id, device_id, account_id, campaign_id, engine, status, started_at, finished_at, session_id, logs_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'); const safeLogs = run.logs.map(({ screenshot: _screenshot, ...log }) => log); try { statement.run([run.workflowId, run.deviceId, run.accountId, run.campaignId ?? null, run.engine, run.status, run.startedAt, run.finishedAt, sessionId ?? null, JSON.stringify(safeLogs)]); } finally { statement.free(); } const id = Number(database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0]); saveJobSteps(id, run.logs); persistDatabase(); return { ...run, id, logs: safeLogs }; }
+export function listJobRuns(limit = 40): JobRunSummary[] { const result = database.exec(`SELECT job_runs.id, job_runs.workflow_id AS workflowId, job_runs.device_id AS deviceId, job_runs.account_id AS accountId, job_runs.campaign_id AS campaignId, job_runs.engine, job_runs.status, job_runs.started_at AS startedAt, job_runs.finished_at AS finishedAt, workflows.name AS workflowName, devices.display_name AS deviceName, accounts.display_name AS accountName, campaigns.name AS campaignName FROM job_runs JOIN workflows ON workflows.id = job_runs.workflow_id JOIN devices ON devices.id = job_runs.device_id JOIN accounts ON accounts.id = job_runs.account_id LEFT JOIN campaigns ON campaigns.id = job_runs.campaign_id ORDER BY job_runs.id DESC LIMIT ${Math.min(Math.max(limit, 1), 100)}`)[0]; return result ? result.values.map((values) => Object.fromEntries(result.columns.map((column, index) => [column, values[index]])) as JobRunSummary) : []; }
+export function saveScreenshot(jobRunId: number, step: number, imageBase64: string) { if (!imageBase64 || !/^[A-Za-z0-9+/=]+$/.test(imageBase64)) return null; const directory = path.join(artifactPath, String(jobRunId)); fs.mkdirSync(directory, { recursive: true }); const relativePath = path.join(String(jobRunId), `step-${step}.png`); fs.writeFileSync(path.join(artifactPath, relativePath), Buffer.from(imageBase64, 'base64')); return relativePath; }
+export function closeDatabase() { if (!database) return; persistDatabase(); database.close(); }
 
-export function getWorkflow(id: string): WorkflowDefinition {
-  const result = database.exec(`
-    SELECT definition_json FROM workflows WHERE id = '${escapeSql(id)}'
-  `)[0];
-  if (!result?.values[0]?.[0]) throw new Error('Workflow không tồn tại.');
-  return JSON.parse(String(result.values[0][0])) as WorkflowDefinition;
-}
-
-export function saveWorkflowRun(run: Omit<WorkflowRun, 'id'>): WorkflowRun {
-  const statement = database.prepare(`
-    INSERT INTO workflow_runs (workflow_id, status, started_at, finished_at, logs_json)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-  statement.run([
-    run.workflowId,
-    run.status,
-    run.startedAt,
-    run.finishedAt,
-    JSON.stringify(run.logs),
-  ]);
-  statement.free();
-  const id = database.exec('SELECT last_insert_rowid() AS id')[0].values[0][0] as number;
-  persistDatabase();
-  return { ...run, id };
-}
-
-function seedWorkflows() {
-  const countResult = database.exec('SELECT COUNT(*) AS count FROM workflows')[0];
-  const count = Number(countResult?.values[0]?.[0] ?? 0);
-  if (count > 0) return;
-  const statement = database.prepare(`
-    INSERT INTO workflows (id, name, version, description, definition_json)
-    VALUES (?, ?, ?, ?, ?)
-  `);
-  statement.run([
-    vinClubWorkflow.id,
-    vinClubWorkflow.name,
-    vinClubWorkflow.version,
-    vinClubWorkflow.description ?? null,
-    JSON.stringify(vinClubWorkflow),
-  ]);
-  statement.free();
-}
-
-function escapeSql(value: string) {
-  return value.replace(/'/g, "''");
-}
-
-function persistDatabase() {
-  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
-  fs.writeFileSync(databasePath, Buffer.from(database.export()));
-}
+function listCampaignTargets(campaignId: number): CampaignTarget[] { const statement = database.prepare('SELECT device_id AS deviceId, account_id AS accountId FROM campaign_targets WHERE campaign_id = ? ORDER BY device_id, account_id'); try { statement.bind([campaignId]); const targets: CampaignTarget[] = []; while (statement.step()) { const row = statement.getAsObject(); targets.push({ deviceId: Number(row.deviceId), accountId: Number(row.accountId) }); } return targets; } finally { statement.free(); } }
+function saveCampaignTargets(campaignId: number, targets: CampaignTarget[]) { const statement = database.prepare('INSERT INTO campaign_targets (campaign_id, device_id, account_id) VALUES (?, ?, ?)'); try { targets.forEach((target) => statement.run([campaignId, target.deviceId, target.accountId])); } finally { statement.free(); } }
+function validateCampaign(input: CampaignInput) { if (!input.name?.trim()) throw new Error('Campaign cần tên.'); getWorkflow(input.workflowId); if (!input.variables || typeof input.variables !== 'object' || Array.isArray(input.variables)) throw new Error('Campaign variables phải là JSON object.'); if (Object.keys(input.variables).some((key) => /password|secret|credential/i.test(key))) throw new Error('Campaign không được chứa password, secret hoặc credential.'); if (!Array.isArray(input.targets) || !input.targets.length) throw new Error('Campaign cần ít nhất một cặp device và account.'); const deviceIds = new Set<number>(); input.targets.forEach((target) => { getDevice(Number(target.deviceId)); getAccount(Number(target.accountId)); if (deviceIds.has(target.deviceId)) throw new Error('Một device chỉ được gán một account trong cùng campaign.'); deviceIds.add(target.deviceId); }); }
+function saveJobSteps(jobRunId: number, logs: WorkflowLog[]) { const statement = database.prepare('INSERT INTO job_steps (job_run_id, step_number, step_name, action_type, status, message, occurred_at, screenshot_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'); try { logs.forEach((log) => statement.run([jobRunId, log.step, log.name, log.type, log.status, log.message, log.at, log.screenshot ? saveScreenshot(jobRunId, log.step, log.screenshot) : null])); } finally { statement.free(); } }
+function seedWorkflows() { const statement = database.prepare('INSERT OR IGNORE INTO workflows (id, name, version, description, definition_json) VALUES (?, ?, ?, ?, ?)'); try { statement.run([vinClubWorkflow.id, vinClubWorkflow.name, vinClubWorkflow.version, vinClubWorkflow.description ?? null, JSON.stringify(vinClubWorkflow)]); } finally { statement.free(); } }
+function migrateDeviceCredentials() { const columns = database.exec('PRAGMA table_info(devices)')[0]?.values.map((values) => String(values[1])) ?? []; if (!columns.includes('credential_ref')) return; database.run('PRAGMA foreign_keys = OFF'); database.run('CREATE TABLE devices_next (id INTEGER PRIMARY KEY AUTOINCREMENT, display_name TEXT NOT NULL, udid TEXT NOT NULL UNIQUE, bundle_id TEXT NOT NULL, connection_type TEXT NOT NULL CHECK(connection_type = \'usb\'), status TEXT NOT NULL DEFAULT \'unknown\', pairing_status TEXT NOT NULL DEFAULT \'unknown\', capabilities_json TEXT NOT NULL DEFAULT \'[]\', wda_local_port INTEGER NOT NULL UNIQUE, last_checked_at TEXT, last_error TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)'); database.run('INSERT INTO devices_next (id, display_name, udid, bundle_id, connection_type, status, pairing_status, capabilities_json, wda_local_port, last_checked_at, last_error, created_at, updated_at) SELECT id, display_name, udid, bundle_id, connection_type, status, pairing_status, capabilities_json, wda_local_port, last_checked_at, last_error, created_at, updated_at FROM devices'); database.run('DROP TABLE devices'); database.run('ALTER TABLE devices_next RENAME TO devices'); database.run('PRAGMA foreign_keys = ON'); }
+function migrateUdidCase() { database.run('UPDATE devices SET udid = UPPER(udid) WHERE udid != UPPER(udid)'); }
+function migrateJobRunColumns() { const columns = database.exec('PRAGMA table_info(job_runs)')[0]?.values.map((values) => String(values[1])) ?? []; if (!columns.includes('account_id')) database.run('ALTER TABLE job_runs ADD COLUMN account_id INTEGER'); if (!columns.includes('campaign_id')) database.run('ALTER TABLE job_runs ADD COLUMN campaign_id INTEGER'); }
+function isUdid(value: string) { return /^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{8}-[a-fA-F0-9]{16})$/.test(value?.trim()); }
+function canonicalUdid(value: string) { return value.trim().toUpperCase(); }
+function nextWdaPort() { const ports = new Set(listDevices().map((device) => device.wdaLocalPort)); for (let port = 8100; port < 8200; port += 1) if (!ports.has(port)) return port; throw new Error('Không còn WDA port trống.'); }
+function archiveLegacyDatabase() { if (!fs.existsSync(databasePath)) return; try { const text = fs.readFileSync(databasePath).toString('utf8'); if (!text.includes('host_fingerprint') && !text.includes('ssh_server')) return; fs.renameSync(databasePath, path.join(path.dirname(databasePath), `vinpearl-ssh-archive-${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`)); } catch { /* Existing DB stays intact if it cannot be inspected. */ } }
+function persistDatabase() { fs.mkdirSync(path.dirname(databasePath), { recursive: true }); fs.writeFileSync(databasePath, Buffer.from(database.export())); }

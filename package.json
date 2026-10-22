@@ -2,7 +2,7 @@
   "name": "vinpearl-iphone-automation-manager",
   "version": "0.1.0",
   "private": true,
-  "description": "Desktop manager for authorized jailbroken iPhones over SSH",
+  "description": "macOS desktop manager for authorized iPhones through local Appium/XCUITest",
   "main": "dist-electron/src/main/index.js",
   "scripts": {
     "dev": "node scripts/dev.cjs",
@@ -10,21 +10,21 @@
     "start": "node scripts/run-electron.cjs",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "check:workflow": "node scripts/check-workflow.cjs",
-    "check:ssh": "node scripts/check-ssh.cjs",
-    "package:win": "npm run build && electron-builder --win nsis"
+    "check:appium": "node scripts/check-appium.cjs",
+    "check:database": "node scripts/check-database.cjs",
+    "check": "npm run typecheck && npm run build && npm run check:workflow && npm run check:appium && npm run check:database",
+    "package:mac": "npm run build && electron-builder --mac dmg"
   },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "sql.js": "^1.13.0",
-    "ssh2": "^1.17.0"
+    "sql.js": "^1.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/sql.js": "^1.4.9",
-    "@types/ssh2": "^1.15.6",
     "@vitejs/plugin-react": "^4.4.1",
     "electron": "^36.3.2",
     "electron-builder": "^26.0.12",
@@ -41,11 +41,11 @@
       "dist-renderer/**/*",
       "dist-electron/**/*",
       "package.json",
-      "node_modules/sql.js/**/*",
-      "node_modules/ssh2/**/*"
+      "node_modules/sql.js/**/*"
     ],
-    "win": {
-      "target": "nsis"
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
     }
   }
 }

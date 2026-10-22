@@ -5,6 +5,7 @@ export const vinClubWorkflow: WorkflowDefinition = {
   version: 1,
   name: 'VinClub - tìm phòng Melia Đà Nẵng',
   description: 'Luồng tìm phòng theo điểm, dừng trước hành động đặt phòng.',
+  bundleId: 'net.cloudhms.booking.vinpearl',
   variables: {
     username: { secret: false },
     password: { secret: true },

@@ -13,7 +13,6 @@ export type LocationInput = {
 
 export type VinClubScriptInput = {
   credentialRef?: string;
-  username?: string;
   paymentPlan?: string;
   locations: LocationInput[];
 };
@@ -37,9 +36,8 @@ export function validateScriptInput(input: VinClubScriptInput): string[] {
   const errors: string[] = [];
   if (!input || !Array.isArray(input.locations)) return ['Input script phải có danh sách locations.'];
   const credentialRef = typeof input.credentialRef === 'string' ? input.credentialRef : '';
-  const username = typeof input.username === 'string' ? input.username : '';
-  if (!credentialRef.trim() && !username.trim()) {
-    errors.push('Cần credentialRef hoặc username để chạy script.');
+  if (!credentialRef.trim()) {
+    errors.push('Cần credentialRef để chạy script preview.');
   }
   if (input.paymentPlan !== undefined && typeof input.paymentPlan !== 'string') errors.push('Mã thanh toán phải là chuỗi.');
   if (!input.locations.length) errors.push('Cần ít nhất một địa điểm.');
@@ -75,7 +73,7 @@ export function createLocationWorkflow(
     name: `${vinClubWorkflow.name} · ${location.name}`,
     variables: {
       ...vinClubWorkflow.variables,
-      username: input.username ?? { secret: false },
+      username: { secret: false },
       credentialRef: input.credentialRef ?? '',
       hotel: location.name,
       paymentPlan: input.paymentPlan ?? vinClubWorkflow.variables.paymentPlan,

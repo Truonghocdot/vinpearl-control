@@ -1,156 +1,32 @@
-export const workflowActionTypes = [
-  'launchApp',
-  'waitForText',
-  'tapText',
-  'inputText',
-  'selectDate',
-  'selectGuests',
-  'assertText',
-  'sshCommand',
-  'stop',
-] as const;
-
+export const workflowActionTypes = ['launchApp', 'waitForText', 'tapText', 'inputText', 'selectDate', 'selectGuests', 'assertText', 'screenshot', 'stop'] as const;
 export type WorkflowActionType = typeof workflowActionTypes[number];
-
-export type WorkflowStep = {
-  type: WorkflowActionType;
-  name?: string;
-  text?: string;
-  target?: string;
-  value?: string;
-  secret?: boolean;
-  timeoutMs?: number;
-  checkIn?: string;
-  checkOut?: string;
-  rooms?: number | string;
-  adults?: number | string;
-  children?: number | string;
-  infants?: number | string;
-  reason?: string;
-  command?: string;
-  maxOutputBytes?: number;
-};
-
-export type WorkflowDefinition = {
-  id: string;
-  version: number;
-  name: string;
-  description?: string;
-  variables: Record<string, unknown>;
-  steps: WorkflowStep[];
-};
-
-export type WorkflowSummary = Pick<WorkflowDefinition, 'id' | 'version' | 'name' | 'description'> & {
-  stepCount: number;
-};
-
-export type WorkflowLog = {
-  step: number;
-  name: string;
-  type: WorkflowActionType;
-  status: 'running' | 'succeeded' | 'stopped' | 'failed';
-  message: string;
-  at: string;
-};
-
-export type WorkflowRun = {
-  id: number;
-  workflowId: string;
-  status: 'succeeded' | 'failed' | 'stopped';
-  startedAt: string;
-  finishedAt: string;
-  logs: WorkflowLog[];
-};
+export type WorkflowStep = { type: WorkflowActionType; name?: string; text?: string; target?: string; accessibilityId?: string; value?: string; secret?: boolean; timeoutMs?: number; checkIn?: string; checkOut?: string; rooms?: number | string; adults?: number | string; children?: number | string; infants?: number | string; reason?: string };
+export type WorkflowDefinition = { id: string; version: number; name: string; description?: string; bundleId: string; variables: Record<string, unknown>; steps: WorkflowStep[] };
+export type WorkflowSummary = Pick<WorkflowDefinition, 'id' | 'version' | 'name' | 'description' | 'bundleId'> & { stepCount: number };
+export type WorkflowLog = { step: number; name: string; type: WorkflowActionType; status: 'running' | 'succeeded' | 'stopped' | 'failed'; message: string; at: string; screenshot?: string };
+export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; accountId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
+export type AutomationSession = { id: string };
+export interface WorkflowEngine { readonly capabilities: readonly string[]; execute(session: AutomationSession, step: WorkflowStep, variables: Record<string, unknown>): Promise<unknown>; screenshot?(session: AutomationSession): Promise<string>; }
 
 export function validateWorkflow(workflow: WorkflowDefinition): string[] {
   const errors: string[] = [];
-  if (!workflow.id.trim()) errors.push('Workflow thiếu id.');
-  if (!workflow.name.trim()) errors.push('Workflow thiếu tên.');
-  if (!workflow.steps.length) errors.push('Workflow phải có ít nhất một step.');
-
-  workflow.steps.forEach((step, index) => {
-    const label = `Step ${index + 1}`;
-    if (!workflowActionTypes.includes(step.type)) errors.push(`${label}: action không được hỗ trợ.`);
-    if (step.type === 'waitForText' || step.type === 'assertText' || step.type === 'tapText') {
-      if (!step.text?.trim()) errors.push(`${label}: thiếu text selector.`);
-    }
-    if (step.type === 'inputText' && (!step.target?.trim() || step.value === undefined)) {
-      errors.push(`${label}: inputText cần target và value.`);
-    }
-    if (step.type === 'selectDate' && (!step.checkIn || !step.checkOut)) {
-      errors.push(`${label}: selectDate cần checkIn và checkOut.`);
-    }
-    if (step.type === 'selectGuests' && (step.rooms === undefined || step.adults === undefined)) {
-      errors.push(`${label}: selectGuests cần rooms và adults.`);
-    }
-    if (step.type === 'sshCommand' && !step.command?.trim()) errors.push(`${label}: sshCommand cần command.`);
-  });
-  return errors;
+  if (!workflow.id?.trim()) errors.push('Workflow thiếu id.'); if (!workflow.name?.trim()) errors.push('Workflow thiếu tên.'); if (!workflow.bundleId?.trim()) errors.push('Workflow thiếu bundleId.'); if (!workflow.steps?.length) errors.push('Workflow phải có ít nhất một step.');
+  workflow.steps?.forEach((step, index) => { const label = `Step ${index + 1}`; if (!workflowActionTypes.includes(step.type)) errors.push(`${label}: action không được hỗ trợ.`); if (['waitForText', 'assertText', 'tapText'].includes(step.type) && !step.text?.trim()) errors.push(`${label}: thiếu text selector.`); if (step.type === 'inputText' && (!step.target?.trim() || step.value === undefined)) errors.push(`${label}: inputText cần target và value.`); if (step.type === 'selectDate' && (!step.checkIn || !step.checkOut)) errors.push(`${label}: selectDate cần checkIn và checkOut.`); if (step.type === 'selectGuests' && (step.rooms === undefined || step.adults === undefined)) errors.push(`${label}: selectGuests cần rooms và adults.`); }); return errors;
 }
 
-function interpolate(value: unknown, variables: Record<string, unknown>): string {
-  return String(value ?? '').replace(/\{\{([\w.-]+)\}\}/g, (_match, key: string) => {
-    const variable = variables[key];
-    if (variable && typeof variable === 'object' && 'secret' in variable) return '[secret]';
-    return String(variable ?? '');
-  });
+export async function runWorkflowPreview(workflow: WorkflowDefinition, onLog?: (log: WorkflowLog) => void): Promise<Omit<WorkflowRun, 'id'>> {
+  const startedAt = new Date().toISOString(); const errors = validateWorkflow(workflow); if (errors.length) { const log: WorkflowLog = { step: 0, name: 'Validate workflow', type: 'stop', status: 'failed', message: errors.join(' '), at: new Date().toISOString() }; onLog?.(log); return { workflowId: workflow.id, engine: 'preview', status: 'failed', startedAt, finishedAt: log.at, logs: [log] }; }
+  const logs: WorkflowLog[] = []; for (const [index, step] of workflow.steps.entries()) { const log: WorkflowLog = { step: index + 1, name: step.name ?? step.type, type: step.type, status: step.type === 'stop' ? 'stopped' : 'succeeded', message: describeStep(step, workflow.variables), at: new Date().toISOString() }; logs.push(log); onLog?.(log); if (step.type === 'stop') return { workflowId: workflow.id, engine: 'preview', status: 'stopped', startedAt, finishedAt: new Date().toISOString(), logs }; await new Promise((resolve) => setTimeout(resolve, 10)); }
+  return { workflowId: workflow.id, engine: 'preview', status: 'succeeded', startedAt, finishedAt: new Date().toISOString(), logs };
 }
 
-function describeStep(step: WorkflowStep, variables: Record<string, unknown>): string {
-  switch (step.type) {
-    case 'launchApp': return 'Mô phỏng mở ứng dụng VinClub.';
-    case 'waitForText': return `Mô phỏng chờ text “${interpolate(step.text, variables)}”.`;
-    case 'tapText': return `Mô phỏng chạm text “${interpolate(step.text, variables)}”.`;
-    case 'inputText': return `Mô phỏng nhập ${step.secret ? '[secret]' : `“${interpolate(step.value, variables)}”`} vào “${step.target}”.`;
-    case 'selectDate': return `Mô phỏng chọn ${interpolate(step.checkIn, variables)} đến ${interpolate(step.checkOut, variables)}.`;
-    case 'selectGuests': return `Mô phỏng chọn ${interpolate(step.rooms, variables)} phòng, ${interpolate(step.adults, variables)} người lớn.`;
-    case 'assertText': return `Mô phỏng kiểm tra text “${interpolate(step.text, variables)}”.`;
-    case 'sshCommand': return `Mô phỏng SSH exec: ${step.command ?? ''}`;
-    case 'stop': return step.reason ?? 'Workflow dừng theo cấu hình.';
-  }
+export async function runWorkflowLive(workflow: WorkflowDefinition, engine: WorkflowEngine, session: AutomationSession, options: { deviceId?: number; accountId?: number; campaignId?: number; signal?: AbortSignal; onLog?: (log: WorkflowLog) => void } = {}): Promise<Omit<WorkflowRun, 'id'>> {
+  const metadata = { deviceId: options.deviceId, accountId: options.accountId, campaignId: options.campaignId }; const startedAt = new Date().toISOString(); const errors = validateWorkflow(workflow); const logs: WorkflowLog[] = []; if (errors.length) return { workflowId: workflow.id, ...metadata, engine: 'appium', status: 'failed', startedAt, finishedAt: new Date().toISOString(), logs: [{ step: 0, name: 'Validate workflow', type: 'stop', status: 'failed', message: errors.join(' '), at: new Date().toISOString() }] };
+  const unsupported = workflow.steps.find((step) => !['stop', ...engine.capabilities].includes(step.type)); if (unsupported) throw new Error(`Engine không hỗ trợ action ${unsupported.type}.`);
+  try { for (const [index, step] of workflow.steps.entries()) { if (options.signal?.aborted) throw new Error('Workflow đã bị hủy.'); const log: WorkflowLog = { step: index + 1, name: step.name ?? step.type, type: step.type, status: step.type === 'stop' ? 'stopped' : 'running', message: step.type === 'stop' ? (step.reason ?? 'Workflow dừng an toàn.') : `Đang thực thi ${step.type}.`, at: new Date().toISOString() }; try { if (step.type !== 'stop') await withTimeout(engine.execute(session, step, workflow.variables), step.timeoutMs ?? 30_000); log.status = step.type === 'stop' ? 'stopped' : 'succeeded'; log.message = describeStep(step, workflow.variables); } catch (error) { log.status = 'failed'; log.message = redact(error instanceof Error ? error.message : 'Automation failed', secretValues(workflow.variables)); if (engine.screenshot) { try { log.screenshot = await engine.screenshot(session); } catch { /* best effort */ } } logs.push(log); options.onLog?.(log); throw error; } logs.push(log); options.onLog?.(log); if (step.type === 'stop') return { workflowId: workflow.id, ...metadata, engine: 'appium', status: 'stopped', startedAt, finishedAt: new Date().toISOString(), logs }; } return { workflowId: workflow.id, ...metadata, engine: 'appium', status: 'succeeded', startedAt, finishedAt: new Date().toISOString(), logs }; } catch { return { workflowId: workflow.id, ...metadata, engine: 'appium', status: options.signal?.aborted ? 'cancelled' : 'failed', startedAt, finishedAt: new Date().toISOString(), logs }; }
 }
 
-export async function runWorkflowPreview(
-  workflow: WorkflowDefinition,
-  onLog?: (log: WorkflowLog) => void,
-): Promise<Omit<WorkflowRun, 'id'>> {
-  const errors = validateWorkflow(workflow);
-  const startedAt = new Date().toISOString();
-  if (errors.length) {
-    const finishedAt = new Date().toISOString();
-    const log: WorkflowLog = {
-      step: 0,
-      name: 'Validate workflow',
-      type: 'stop',
-      status: 'failed',
-      message: errors.join(' '),
-      at: finishedAt,
-    };
-    onLog?.(log);
-    return { workflowId: workflow.id, status: 'failed', startedAt, finishedAt, logs: [log] };
-  }
-
-  const logs: WorkflowLog[] = [];
-  for (const [index, step] of workflow.steps.entries()) {
-    const at = new Date().toISOString();
-    const stopped = step.type === 'stop';
-    const log: WorkflowLog = {
-      step: index + 1,
-      name: step.name ?? step.type,
-      type: step.type,
-      status: stopped ? 'stopped' : 'succeeded',
-      message: describeStep(step, workflow.variables),
-      at,
-    };
-    logs.push(log);
-    onLog?.(log);
-    if (stopped) {
-      const finishedAt = new Date().toISOString();
-      return { workflowId: workflow.id, status: 'stopped', startedAt, finishedAt, logs };
-    }
-    await new Promise((resolve) => setTimeout(resolve, 30));
-  }
-
-  const finishedAt = new Date().toISOString();
-  return { workflowId: workflow.id, status: 'succeeded', startedAt, finishedAt, logs };
-}
+function describeStep(step: WorkflowStep, variables: Record<string, unknown>) { const value = (input: unknown) => String(input ?? '').replace(/\{\{([\w.-]+)\}\}/g, (_m, key: string) => { const variable = variables[key]; return variable && typeof variable === 'object' && 'secret' in variable ? '[secret]' : String(variable ?? ''); }); switch (step.type) { case 'launchApp': return 'Mở ứng dụng VinClub.'; case 'waitForText': return `Chờ text “${value(step.text)}”.`; case 'tapText': return `Chạm text “${value(step.text)}”.`; case 'inputText': return `Nhập ${step.secret ? '[secret]' : `“${value(step.value)}”`} vào “${value(step.target)}”.`; case 'selectDate': return `Chọn ${value(step.checkIn)} đến ${value(step.checkOut)}.`; case 'selectGuests': return `Chọn ${value(step.rooms)} phòng, ${value(step.adults)} người lớn.`; case 'assertText': return `Kiểm tra text “${value(step.text)}”.`; case 'screenshot': return 'Chụp màn hình.'; case 'stop': return step.reason ?? 'Workflow dừng an toàn.'; } }
+function secretValues(variables: Record<string, unknown>) { return Object.entries(variables).filter(([key, value]) => /password|secret/i.test(key) && typeof value === 'string').map(([, value]) => String(value)); }
+function redact(message: string, values: string[] = []) { return values.reduce((result, value) => value ? result.split(value).join('[redacted]') : result, message.replace(/password|secret/gi, '[redacted]')); }
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) { return new Promise<T>((resolve, reject) => { const timer = setTimeout(() => reject(new Error(`Step timeout sau ${timeoutMs}ms.`)), timeoutMs); promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); }); }); }

@@ -1,25 +1,27 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { Account, AccountInput, Campaign, CampaignInput, Device, DeviceInput, JobRunSummary } from '../main/database';
+import type { DeviceHealth } from '../main/job-service';
 import type { WorkflowDefinition, WorkflowRun, WorkflowSummary } from '../main/workflow-runner';
 import type { VinClubScriptInput, VinClubScriptResult } from '../main/automation-script';
-import type { SshAuth, SshCommandResult, SshProbeResult, SshTarget } from '../main/ssh/ssh-service';
-
-type SshHostUntrustedResponse = { status: 'host-untrusted'; fingerprint: string };
-type SshProbeResponse = { status: 'ok'; result: SshProbeResult } | SshHostUntrustedResponse;
-type SshCommandResponse = { status: 'ok'; result: SshCommandResult } | SshHostUntrustedResponse;
 
 contextBridge.exposeInMainWorld('desktopApi', {
-  getAppInfo: () => ipcRenderer.invoke('app:get-info'),
-  listDevices: () => ipcRenderer.invoke('devices:list'),
-  createDevice: (input: {
-    name: string;
-    host: string;
-    port: number;
-    username: string;
-  }) => ipcRenderer.invoke('devices:create', input),
+  getAppInfo: (): Promise<{ name: string; version: string; platform: string; appiumPort: number }> => ipcRenderer.invoke('app:get-info'),
+  listDevices: (): Promise<Device[]> => ipcRenderer.invoke('devices:list'),
+  createDevice: (input: DeviceInput): Promise<Device> => ipcRenderer.invoke('devices:create', input),
+  updateDevice: (input: { id: number; device: DeviceInput }): Promise<Device> => ipcRenderer.invoke('devices:update', input),
+  checkDevice: (deviceId: number): Promise<DeviceHealth> => ipcRenderer.invoke('devices:check', deviceId),
+  listAccounts: (): Promise<Account[]> => ipcRenderer.invoke('accounts:list'),
+  createAccount: (input: AccountInput & { password: string }): Promise<Account> => ipcRenderer.invoke('accounts:create', input),
+  updateAccount: (input: { id: number; account: AccountInput; password?: string }): Promise<Account> => ipcRenderer.invoke('accounts:update', input),
+  setAccountStatus: (input: { id: number; status: 'active' | 'disabled' }): Promise<Account> => ipcRenderer.invoke('accounts:set-status', input),
   listWorkflows: (): Promise<WorkflowSummary[]> => ipcRenderer.invoke('workflows:list'),
   getWorkflow: (workflowId: string): Promise<WorkflowDefinition> => ipcRenderer.invoke('workflows:get', workflowId),
-  runWorkflowPreview: (workflowId: string): Promise<WorkflowRun> => ipcRenderer.invoke('workflows:run-preview', workflowId),
-  runVinClubScript: (input: VinClubScriptInput): Promise<VinClubScriptResult> => ipcRenderer.invoke('scripts:run-vinclub', input),
-  probeSsh: (input: { target: SshTarget; auth: SshAuth }): Promise<SshProbeResponse> => ipcRenderer.invoke('ssh:probe', input),
-  runSshCommand: (input: { target: SshTarget; auth: SshAuth; command: string }): Promise<SshCommandResponse> => ipcRenderer.invoke('ssh:command', input),
+  runWorkflowPreview: (workflowId: string): Promise<Omit<WorkflowRun, 'id'>> => ipcRenderer.invoke('workflows:run-preview', workflowId),
+  listCampaigns: (): Promise<Campaign[]> => ipcRenderer.invoke('campaigns:list'),
+  createCampaign: (input: CampaignInput): Promise<Campaign> => ipcRenderer.invoke('campaigns:create', input),
+  updateCampaign: (input: { id: number; campaign: CampaignInput }): Promise<Campaign> => ipcRenderer.invoke('campaigns:update', input),
+  runCampaign: (campaignId: number): Promise<WorkflowRun[]> => ipcRenderer.invoke('campaigns:run', campaignId),
+  listJobRuns: (): Promise<JobRunSummary[]> => ipcRenderer.invoke('jobs:list'),
+  cancelJob: (deviceId: number): Promise<boolean> => ipcRenderer.invoke('jobs:cancel', deviceId),
+  runVinClubScript: (input: VinClubScriptInput): Promise<VinClubScriptResult> => ipcRenderer.invoke('scripts:run-vinclub-preview', input),
 });

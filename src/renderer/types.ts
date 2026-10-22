@@ -1,138 +1,28 @@
-export type Device = {
-  id: number;
-  name: string;
-  host: string;
-  port: number;
-  username: string;
-  status: 'unknown' | 'online' | 'offline';
-  lastCheckedAt: string | null;
-};
-
+export type DeviceStatus = 'unknown' | 'ready' | 'offline' | 'busy' | 'error';
+export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: 'usb'; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null };
+export type DeviceInput = { displayName: string; udid: string; bundleId: string; wdaLocalPort?: number };
+export type Account = { id: number; displayName: string; username: string; credentialRef: string; status: 'active' | 'disabled'; createdAt: string };
+export type AccountInput = { displayName: string; username: string; credentialRef: string; password?: string };
+export type CampaignTarget = { deviceId: number; accountId: number };
+export type Campaign = { id: number; name: string; workflowId: string; variables: Record<string, unknown>; targets: CampaignTarget[]; status: 'draft' | 'active' | 'archived'; createdAt: string; updatedAt: string };
+export type CampaignInput = { name: string; workflowId: string; variables: Record<string, unknown>; targets: CampaignTarget[]; status?: Campaign['status'] };
+export type DeviceHealth = { appiumReady: boolean; deviceReady: boolean; capabilities: string[]; message?: string };
+export type WorkflowStep = { type: string; name?: string; text?: string; target?: string; accessibilityId?: string; value?: string; secret?: boolean; timeoutMs?: number; checkIn?: string; checkOut?: string; rooms?: number | string; adults?: number | string; children?: number | string; infants?: number | string; reason?: string };
+export type WorkflowDefinition = { id: string; version: number; name: string; description?: string; bundleId: string; variables: Record<string, unknown>; steps: WorkflowStep[] };
+export type WorkflowSummary = { id: string; name: string; version: number; description?: string; bundleId: string; stepCount: number };
+export type WorkflowLog = { step: number; name: string; type: string; status: 'running' | 'succeeded' | 'stopped' | 'failed'; message: string; at: string };
+export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; accountId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
+export type JobRunSummary = Pick<WorkflowRun, 'id' | 'workflowId' | 'deviceId' | 'accountId' | 'campaignId' | 'engine' | 'status' | 'startedAt' | 'finishedAt'> & { workflowName: string; deviceName: string; accountName: string; campaignName: string | null };
+export type LocationInput = { name: string; checkIn: string; checkOut: string; rooms: number; adults: number; children: number; infants: number };
+export type VinClubScriptInput = { credentialRef?: string; paymentPlan?: string; locations: LocationInput[] };
+export type ScriptLocationResult = { location: LocationInput; workflowId: string; status: WorkflowRun['status']; logs: WorkflowLog[] };
+export type VinClubScriptResult = { status: 'succeeded' | 'failed'; totalLocations: number; completedLocations: number; failedLocations: number; results: ScriptLocationResult[] };
 export type DesktopApi = {
-  getAppInfo: () => Promise<{ name: string; version: string; platform: string }>;
-  listDevices: () => Promise<Device[]>;
-  createDevice: (input: {
-    name: string;
-    host: string;
-    port: number;
-    username: string;
-  }) => Promise<Device>;
-  listWorkflows: () => Promise<WorkflowSummary[]>;
-  getWorkflow: (workflowId: string) => Promise<WorkflowDefinition>;
-  runWorkflowPreview: (workflowId: string) => Promise<WorkflowRun>;
+  getAppInfo: () => Promise<{ name: string; version: string; platform: string; appiumPort: number }>;
+  listDevices: () => Promise<Device[]>; createDevice: (input: DeviceInput) => Promise<Device>; updateDevice: (input: { id: number; device: DeviceInput }) => Promise<Device>; checkDevice: (deviceId: number) => Promise<DeviceHealth>;
+  listAccounts: () => Promise<Account[]>; createAccount: (input: AccountInput & { password: string }) => Promise<Account>; updateAccount: (input: { id: number; account: AccountInput; password?: string }) => Promise<Account>; setAccountStatus: (input: { id: number; status: 'active' | 'disabled' }) => Promise<Account>;
+  listWorkflows: () => Promise<WorkflowSummary[]>; getWorkflow: (id: string) => Promise<WorkflowDefinition>; runWorkflowPreview: (id: string) => Promise<Omit<WorkflowRun, 'id'>>;
+  listCampaigns: () => Promise<Campaign[]>; createCampaign: (input: CampaignInput) => Promise<Campaign>; updateCampaign: (input: { id: number; campaign: CampaignInput }) => Promise<Campaign>; runCampaign: (campaignId: number) => Promise<WorkflowRun[]>;
+  listJobRuns: () => Promise<JobRunSummary[]>; cancelJob: (deviceId: number) => Promise<boolean>;
   runVinClubScript: (input: VinClubScriptInput) => Promise<VinClubScriptResult>;
-  probeSsh: (input: { target: SshTarget; auth: SshAuth }) => Promise<SshProbeResponse>;
-  runSshCommand: (input: { target: SshTarget; auth: SshAuth; command: string }) => Promise<SshCommandResponse>;
 };
-
-export type WorkflowStep = {
-  type: string;
-  name?: string;
-};
-
-export type WorkflowDefinition = {
-  id: string;
-  version: number;
-  name: string;
-  description?: string;
-  variables: Record<string, unknown>;
-  steps: WorkflowStep[];
-};
-
-export type WorkflowSummary = {
-  id: string;
-  name: string;
-  version: number;
-  description?: string;
-  stepCount: number;
-};
-
-export type WorkflowLog = {
-  step: number;
-  name: string;
-  type: string;
-  status: 'running' | 'succeeded' | 'stopped' | 'failed';
-  message: string;
-  at: string;
-};
-
-export type WorkflowRun = {
-  id: number;
-  workflowId: string;
-  status: 'succeeded' | 'failed' | 'stopped';
-  startedAt: string;
-  finishedAt: string;
-  logs: WorkflowLog[];
-};
-
-export type LocationInput = {
-  name: string;
-  checkIn: string;
-  checkOut: string;
-  rooms: number;
-  adults: number;
-  children: number;
-  infants: number;
-};
-
-export type VinClubScriptInput = {
-  credentialRef?: string;
-  username?: string;
-  paymentPlan?: string;
-  locations: LocationInput[];
-};
-
-export type ScriptLocationResult = {
-  location: LocationInput;
-  workflowId: string;
-  status: WorkflowRun['status'];
-  logs: WorkflowLog[];
-};
-
-export type VinClubScriptResult = {
-  status: 'succeeded' | 'failed';
-  totalLocations: number;
-  completedLocations: number;
-  failedLocations: number;
-  results: ScriptLocationResult[];
-};
-
-export type SshTarget = {
-  host: string;
-  port: number;
-  username: string;
-  hostFingerprint?: string;
-};
-
-export type SshAuth = {
-  privateKey?: string;
-  passphrase?: string;
-  password?: string;
-};
-
-export type SshCommandResult = {
-  stdout: string;
-  stderr: string;
-  code: number | null;
-  signal?: string;
-  fingerprint: string;
-  durationMs: number;
-};
-
-export type SshProbeResult = SshCommandResult & {
-  rootless: boolean;
-  sshServer: 'openssh' | 'dropbear' | 'unknown';
-};
-
-export type SshHostUntrustedResponse = {
-  status: 'host-untrusted';
-  fingerprint: string;
-};
-
-export type SshProbeResponse =
-  | { status: 'ok'; result: SshProbeResult }
-  | SshHostUntrustedResponse;
-
-export type SshCommandResponse =
-  | { status: 'ok'; result: SshCommandResult }
-  | SshHostUntrustedResponse;
