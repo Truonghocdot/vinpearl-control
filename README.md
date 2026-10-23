@@ -1,6 +1,6 @@
 # Vinpearl iPhone Automation Manager
 
-Ứng dụng Electron chạy trên macOS để quản lý nhiều iPhone đã pair qua USB và điều khiển chúng bằng Appium 2/XCUITest. Appium chỉ chạy trên `127.0.0.1`; mỗi iPhone có UDID, WDA port và session riêng nên nhiều thiết bị có thể chạy song song.
+Ứng dụng Electron chạy trên macOS để quản lý nhiều iPhone đã pair với Mac (kết nối USB hoặc IP) và điều khiển chúng bằng Appium 2/XCUITest. Appium chỉ chạy trên `127.0.0.1`; mỗi iPhone có UDID, WDA port và session riêng nên nhiều thiết bị có thể chạy song song.
 
 ## Kiến trúc
 
@@ -8,11 +8,11 @@
 Electron macOS
   -> Appium 2 (127.0.0.1:4723)
   -> XCUITest / WebDriverAgent
-  -> iPhone USB đã pair/trust
+  -> iPhone đã pair/trust (USB, hoặc IP: WDA chạy sẵn trên iPhone)
   -> VinClub
 ```
 
-SQLite tách ba nguồn dữ liệu: `devices` (UDID/Appium), `accounts` (username + Keychain reference) và `campaigns` (bộ input booking + danh sách cặp device-account). Password chỉ được lưu trong macOS Keychain; không nằm trong device, campaign JSON, renderer hoặc SQLite.
+SQLite có hai nguồn dữ liệu: `devices` (UDID, kiểu kết nối `usb`/`ip`, IP, WDA port) và `campaigns` (bộ input booking + danh sách iPhone chạy). Ứng dụng không quản lý tài khoản hay mật khẩu: mỗi iPhone chạy bằng tài khoản MyVinpearl đang đăng nhập thủ công trên máy đó. Database cũ có bảng `accounts` được tự migrate khi mở ứng dụng (giữ campaign và lịch sử chạy, bỏ bảng tài khoản).
 
 ## Chuẩn bị macOS
 
@@ -46,7 +46,7 @@ npm run check
 npm run package:mac
 ```
 
-Campaign là đơn vị cấu hình duy nhất của sản phẩm: action booking được engine giữ cố định, còn mỗi campaign chọn device, account và bộ input riêng. `selectDate`/`selectGuests` dùng selector profile từ accessibility tree đã thu thập; sau mỗi bản cập nhật MyVinpearl cần capture UI tree và xác minh lại profile trước khi chạy.
+Campaign là đơn vị cấu hình duy nhất của sản phẩm: action booking được engine giữ cố định, còn mỗi campaign chọn các iPhone và bộ input riêng. `selectDate`/`selectGuests` dùng selector profile từ accessibility tree đã thu thập; sau mỗi bản cập nhật MyVinpearl cần capture UI tree và xác minh lại profile trước khi chạy.
 
 Kịch bản Hà Tĩnh được trích từ video và dừng trước xác nhận giao dịch được mô tả tại [docs/05-kich-ban-tu-video-ha-tinh.md](docs/05-kich-ban-tu-video-ha-tinh.md).
 Schema input campaign và ví dụ `paymentYear`/`roomType` nằm tại [docs/06-schema-campaign.md](docs/06-schema-campaign.md).
@@ -55,6 +55,7 @@ Schema input campaign và ví dụ `paymentYear`/`roomType` nằm tại [docs/06
 
 - Không mở Appium/WDA ra LAN.
 - Không dùng tọa độ màn hình làm selector chính.
-- Job có timeout, cancel, per-device lock và cleanup session.
+- Job có timeout, cancel và per-device lock. Session Appium được giữ ấm theo thiết bị (tạo khi Kiểm tra hoặc lần chạy đầu, mỗi lần chạy chỉ khởi động lại MyVinpearl; Appium thu hồi sau 30 phút không dùng; đóng khi thoát ứng dụng).
+- Engine không đăng nhập MyVinpearl: iPhone phải được đăng nhập thủ công trước; nếu app đang ở màn đăng nhập, job dừng với lỗi rõ ràng.
 - Engine booking luôn dừng ở safe-stop trước booking/payment.
 - Database legacy được archive timestamped khi ứng dụng phát hiện schema cũ.

@@ -1,9 +1,8 @@
 export type DeviceStatus = 'unknown' | 'ready' | 'offline' | 'busy' | 'error';
-export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: 'usb'; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null };
-export type DeviceInput = { displayName: string; udid: string; bundleId: string; wdaLocalPort?: number };
-export type Account = { id: number; displayName: string; username: string; credentialRef: string; status: 'active' | 'disabled'; createdAt: string };
-export type AccountInput = { displayName: string; username: string; credentialRef: string; password?: string };
-export type CampaignTarget = { deviceId: number; accountId: number };
+export type DeviceConnection = 'usb' | 'ip';
+export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: DeviceConnection; ipAddress: string | null; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null };
+export type DeviceInput = { displayName: string; udid: string; bundleId: string; connectionType: DeviceConnection; ipAddress?: string; wdaLocalPort?: number };
+export type CampaignTarget = { deviceId: number };
 export type CampaignInputs = {
   paymentYear: number;
   locationQuery: string;
@@ -23,12 +22,11 @@ export type DeviceHealth = { appiumReady: boolean; deviceReady: boolean; capabil
 export type UiHierarchyCapture = { capturedAt: string; savedPath: string; source: string };
 export type JobArtifact = { kind: 'screenshot' | 'hierarchy'; savedPath: string; content: string };
 export type WorkflowLog = { step: number; name: string; type: string; status: 'running' | 'succeeded' | 'stopped' | 'failed'; message: string; at: string; durationMs?: number; screenshot?: string; hierarchy?: string };
-export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; accountId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
-export type JobRunSummary = Pick<WorkflowRun, 'id' | 'workflowId' | 'deviceId' | 'accountId' | 'campaignId' | 'engine' | 'status' | 'startedAt' | 'finishedAt'> & { workflowName: string; deviceName: string; accountName: string; campaignName: string | null };
+export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
+export type JobRunSummary = Pick<WorkflowRun, 'id' | 'workflowId' | 'deviceId' | 'campaignId' | 'engine' | 'status' | 'startedAt' | 'finishedAt'> & { workflowName: string; deviceName: string; campaignName: string | null };
 export type DesktopApi = {
   getAppInfo: () => Promise<{ name: string; version: string; platform: string; appiumPort: number }>;
   listDevices: () => Promise<Device[]>; createDevice: (input: DeviceInput) => Promise<Device>; updateDevice: (input: { id: number; device: DeviceInput }) => Promise<Device>; checkDevice: (deviceId: number) => Promise<DeviceHealth>; captureUiHierarchy: (deviceId: number) => Promise<UiHierarchyCapture>;
-  listAccounts: () => Promise<Account[]>; createAccount: (input: AccountInput & { password: string }) => Promise<Account>; updateAccount: (input: { id: number; account: AccountInput; password?: string }) => Promise<Account>; setAccountStatus: (input: { id: number; status: 'active' | 'disabled' }) => Promise<Account>;
   listCampaigns: () => Promise<Campaign[]>; createCampaign: (input: CampaignInput) => Promise<Campaign>; updateCampaign: (input: { id: number; campaign: CampaignInput }) => Promise<Campaign>; runCampaign: (campaignId: number) => Promise<WorkflowRun[]>;
   listJobRuns: () => Promise<JobRunSummary[]>; getJobRun: (jobRunId: number) => Promise<WorkflowRun>; readJobArtifact: (input: { jobRunId: number; step: number; kind: 'screenshot' | 'hierarchy' }) => Promise<JobArtifact>; cancelJob: (deviceId: number) => Promise<boolean>;
 };

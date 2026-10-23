@@ -1,6 +1,6 @@
 # Schema input Campaign
 
-Campaign là đơn vị cấu hình duy nhất của sản phẩm. Thiết bị và tài khoản nằm ở `targets` (`deviceId` + `accountId`), còn dữ liệu thay đổi theo đợt chạy nằm ở `inputs`. Mật khẩu vẫn chỉ nằm trong macOS Keychain.
+Campaign là đơn vị cấu hình duy nhất của sản phẩm. iPhone chạy campaign nằm ở `targets` (`deviceId`, mỗi máy một lần), còn dữ liệu thay đổi theo đợt chạy nằm ở `inputs`. Không có tài khoản trong schema: mỗi iPhone dùng tài khoản MyVinpearl đang đăng nhập trên máy.
 
 ```json
 {
@@ -20,12 +20,12 @@ Campaign là đơn vị cấu hình duy nhất của sản phẩm. Thiết bị 
     "roomPoints": "20 điểm/đêm"
   },
   "targets": [
-    { "deviceId": 1, "accountId": 1 }
+    { "deviceId": 1 }
   ]
 }
 ```
 
-`paymentYear` là giá trị được bấm trên màn hình chọn gói thanh toán; không lưu hoặc tìm theo mã gói. `roomType` và `roomPoints` là bắt buộc, dùng để xác thực đúng phòng trước khi đặt. Account đã chọn cung cấp session và hồ sơ người đặt; device đã chọn là iPhone thực thi.
+`paymentYear` là giá trị được bấm trên màn hình chọn gói thanh toán; không lưu hoặc tìm theo mã gói. `roomType` và `roomPoints` là bắt buộc, dùng để xác thực đúng phòng trước khi đặt. Tài khoản đang đăng nhập trên iPhone cung cấp điểm, mã căn và hồ sơ người đặt; muốn chạy bằng tài khoản khác thì đăng nhập tài khoản đó trên iPhone.
 
 Các campaign bị từ chối nếu thiếu `paymentYear`, `roomType`, ngày không hợp lệ, số khách ngoài phạm vi hoặc có `password`/`secret`/`credential` trong JSON.
 

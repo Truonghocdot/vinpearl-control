@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Account, AccountInput, Campaign, CampaignInput, Device, DeviceInput, JobArtifact, JobRunSummary, UiHierarchyCapture } from '../main/database';
+import type { Campaign, CampaignInput, Device, DeviceInput, JobArtifact, JobRunSummary, UiHierarchyCapture } from '../main/database';
 import type { DeviceHealth } from '../main/job-service';
 import type { WorkflowRun } from '../main/workflow-runner';
 
@@ -10,10 +10,6 @@ contextBridge.exposeInMainWorld('desktopApi', {
   updateDevice: (input: { id: number; device: DeviceInput }): Promise<Device> => ipcRenderer.invoke('devices:update', input),
   checkDevice: (deviceId: number): Promise<DeviceHealth> => ipcRenderer.invoke('devices:check', deviceId),
   captureUiHierarchy: (deviceId: number): Promise<UiHierarchyCapture> => ipcRenderer.invoke('devices:capture-hierarchy', deviceId),
-  listAccounts: (): Promise<Account[]> => ipcRenderer.invoke('accounts:list'),
-  createAccount: (input: AccountInput & { password: string }): Promise<Account> => ipcRenderer.invoke('accounts:create', input),
-  updateAccount: (input: { id: number; account: AccountInput; password?: string }): Promise<Account> => ipcRenderer.invoke('accounts:update', input),
-  setAccountStatus: (input: { id: number; status: 'active' | 'disabled' }): Promise<Account> => ipcRenderer.invoke('accounts:set-status', input),
   listCampaigns: (): Promise<Campaign[]> => ipcRenderer.invoke('campaigns:list'),
   createCampaign: (input: CampaignInput): Promise<Campaign> => ipcRenderer.invoke('campaigns:create', input),
   updateCampaign: (input: { id: number; campaign: CampaignInput }): Promise<Campaign> => ipcRenderer.invoke('campaigns:update', input),

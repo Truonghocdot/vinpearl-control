@@ -1,10 +1,10 @@
 export const workflowActionTypes = ['launchApp', 'ensureHome', 'waitForText', 'tapText', 'inputText', 'selectDate', 'selectGuests', 'assertText', 'screenshot', 'stop'] as const;
 export type WorkflowActionType = typeof workflowActionTypes[number];
-export type WorkflowStep = { type: WorkflowActionType; name?: string; text?: string; target?: string; accessibilityId?: string; xpath?: string; predicate?: string; classChain?: string; scrollContainer?: string; tapCenter?: boolean; until?: string; value?: string; secret?: boolean; timeoutMs?: number; checkIn?: string; checkOut?: string; rooms?: number | string; adults?: number | string; children?: number | string; infants?: number | string; reason?: string };
+export type WorkflowStep = { type: WorkflowActionType; name?: string; text?: string; target?: string; accessibilityId?: string; xpath?: string; predicate?: string; classChain?: string; scrollContainer?: string; tapCenter?: boolean; settle?: boolean; until?: string; skipIfUntil?: boolean; capture?: boolean; value?: string; secret?: boolean; timeoutMs?: number; checkIn?: string; checkOut?: string; rooms?: number | string; adults?: number | string; children?: number | string; infants?: number | string; reason?: string };
 export type WorkflowDefinition = { id: string; version: number; name: string; description?: string; bundleId: string; variables: Record<string, unknown>; steps: WorkflowStep[] };
 export type WorkflowSummary = Pick<WorkflowDefinition, 'id' | 'version' | 'name' | 'description' | 'bundleId'> & { stepCount: number };
 export type WorkflowLog = { step: number; name: string; type: WorkflowActionType; status: 'running' | 'succeeded' | 'stopped' | 'failed'; message: string; at: string; durationMs?: number; screenshot?: string; hierarchy?: string };
-export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; accountId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
+export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; campaignId?: number; engine: 'preview' | 'appium'; status: 'succeeded' | 'failed' | 'stopped' | 'cancelled'; startedAt: string; finishedAt: string; logs: WorkflowLog[] };
 export type AutomationSession = { id: string };
 export interface WorkflowEngine { readonly capabilities: readonly string[]; execute(session: AutomationSession, step: WorkflowStep, variables: Record<string, unknown>): Promise<unknown>; screenshot?(session: AutomationSession): Promise<string>; pageSource?(session: AutomationSession): Promise<string>; }
 
@@ -28,8 +28,8 @@ export async function runWorkflowPreview(workflow: WorkflowDefinition, onLog?: (
   return { workflowId: workflow.id, engine: 'preview', status: 'succeeded', startedAt, finishedAt: new Date().toISOString(), logs };
 }
 
-export async function runWorkflowLive(workflow: WorkflowDefinition, engine: WorkflowEngine, session: AutomationSession, options: { deviceId?: number; accountId?: number; campaignId?: number; signal?: AbortSignal; onLog?: (log: WorkflowLog) => void; captureEveryStep?: boolean } = {}): Promise<Omit<WorkflowRun, 'id'>> {
-  const metadata = { deviceId: options.deviceId, accountId: options.accountId, campaignId: options.campaignId };
+export async function runWorkflowLive(workflow: WorkflowDefinition, engine: WorkflowEngine, session: AutomationSession, options: { deviceId?: number; campaignId?: number; signal?: AbortSignal; onLog?: (log: WorkflowLog) => void; captureMilestones?: boolean } = {}): Promise<Omit<WorkflowRun, 'id'>> {
+  const metadata = { deviceId: options.deviceId, campaignId: options.campaignId };
   const startedAt = new Date().toISOString(); const errors = validateWorkflow(workflow); const logs: WorkflowLog[] = [];
   if (errors.length) return { workflowId: workflow.id, ...metadata, engine: 'appium', status: 'failed', startedAt, finishedAt: new Date().toISOString(), logs: [{ step: 0, name: 'Kiểm tra kịch bản booking', type: 'stop', status: 'failed', message: errors.join(' '), at: new Date().toISOString(), durationMs: 0 }] };
   const unsupported = workflow.steps.find((step) => !['stop', ...engine.capabilities].includes(step.type)); if (unsupported) throw new Error(`Engine không hỗ trợ action ${unsupported.type}.`);
@@ -42,8 +42,8 @@ export async function runWorkflowLive(workflow: WorkflowDefinition, engine: Work
         // The grace period lets the engine's own wait fail first with a selector-specific message.
         if (step.type !== 'stop') await withTimeout(engine.execute(session, step, workflow.variables), (step.timeoutMs ?? 25_000) + 5_000);
         log.status = step.type === 'stop' ? 'stopped' : 'succeeded'; log.message = describeStep(step, workflow.variables); log.durationMs = Date.now() - stepStartedAt;
-        // Successful steps keep only a screenshot: a full UI tree costs ~1s per step on device.
-        if (options.captureEveryStep) await captureDiagnosticArtifacts(engine, session, log, false);
+        // Test runs keep screenshots of the steps marked `capture` only (~0.2s each); failures always get a screenshot and UI tree.
+        if (options.captureMilestones && step.capture) await captureDiagnosticArtifacts(engine, session, log, false);
       } catch (error) {
         log.status = 'failed'; log.durationMs = Date.now() - stepStartedAt; log.message = redact(error instanceof Error ? error.message : 'Automation failed', secretValues(workflow.variables));
         await captureDiagnosticArtifacts(engine, session, log);
