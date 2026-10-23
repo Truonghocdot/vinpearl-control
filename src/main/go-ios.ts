@@ -32,7 +32,12 @@ export function runGoIos(args: string[], timeoutMs = 120_000): Promise<string> {
 export function spawnGoIos(args: string[]): ChildProcess { return spawn(goIosPath(), args, { stdio: ['ignore', 'ignore', 'pipe'] }); }
 
 export async function deviceIosVersion(udid: string) {
-  const info = JSON.parse((await runGoIos(['info', `--udid=${udid}`], 30_000)).split('\n')[0] || '{}') as { ProductVersion?: string };
+  const output = await runGoIos(['info', `--udid=${udid}`], 30_000).catch((error: Error) => {
+    // usbmuxd does not list the phone: unplugged, locked before first trust, or paired only through Xcode's Wi-Fi (CoreDevice).
+    if (/not found/i.test(error.message)) throw new Error('Mac không thấy iPhone này qua USB. Cắm cáp, mở khóa máy và bấm "Tin cậy" nếu được hỏi. Máy iOS 17+ không cần "Chuẩn bị WDA".');
+    throw error;
+  });
+  const info = JSON.parse(output.split('\n')[0] || '{}') as { ProductVersion?: string };
   if (!info.ProductVersion) throw new Error('go-ios không đọc được phiên bản iOS của thiết bị.');
   return info.ProductVersion;
 }
