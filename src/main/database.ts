@@ -156,13 +156,15 @@ function deviceValues(input: DeviceInput, current?: Device) {
   const port = input.wdaLocalPort ?? (current?.connectionType === connectionType ? current.wdaLocalPort : connectionType === 'ip' ? DEFAULT_WDA_PORT : nextWdaPort());
   if (!Number.isInteger(port) || port < 8100 || port > 65535) throw new Error('WDA port phải từ 8100 đến 65535.');
   const others = listDevices().filter((device) => device.id !== current?.id);
-  if (connectionType === 'usb' && others.some((device) => device.connectionType === 'usb' && device.wdaLocalPort === port)) throw new Error(`WDA port ${port} đã được iPhone USB khác dùng.`);
+  // Each USB device forwards WDA to its own Mac port; the field is normally left empty so a free one is assigned.
+  const holder = connectionType === 'usb' ? others.find((device) => device.connectionType === 'usb' && device.wdaLocalPort === port) : undefined;
+  if (holder) throw new Error(`Port ${port} trên Mac đang được "${holder.displayName}" dùng. Để trống ô port để tự cấp (port còn trống: ${nextWdaPort(current?.id)}).`);
   if (ipAddress && others.some((device) => device.ipAddress === ipAddress)) throw new Error(`IP ${ipAddress} đã được thiết bị khác dùng.`);
   return [input.displayName.trim(), canonicalUdid(input.udid), input.bundleId.trim(), connectionType, ipAddress, port];
 }
 const DEFAULT_WDA_PORT = 8100;
 function isIpv4(value: string) { const parts = value.split('.'); return parts.length === 4 && parts.every((part) => /^(?:0|[1-9]\d{0,2})$/.test(part) && Number(part) <= 255); }
-function nextWdaPort() { const ports = new Set(listDevices().filter((device) => device.connectionType === 'usb').map((device) => device.wdaLocalPort)); for (let port = 8100; port < 8200; port += 1) if (!ports.has(port)) return port; throw new Error('Không còn WDA port trống.'); }
+function nextWdaPort(exceptId?: number) { const ports = new Set(listDevices().filter((device) => device.connectionType === 'usb' && device.id !== exceptId).map((device) => device.wdaLocalPort)); for (let port = 8100; port < 8200; port += 1) if (!ports.has(port)) return port; throw new Error('Không còn WDA port trống.'); }
 function isIsoDate(value: unknown) { if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false; const [year, month, day] = value.split('-').map(Number); const date = new Date(Date.UTC(year, month - 1, day)); return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day; }
 function normalizeCampaignInputs(value: unknown): CampaignInputs { let saved: Record<string, unknown> = {}; try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed as Record<string, unknown>; } catch { /* Invalid legacy data is surfaced by validation when it is run. */ } return { ...vinClubWorkflow.variables, ...saved } as CampaignInputs; }
 function archiveLegacyDatabase() { if (!fs.existsSync(databasePath)) return; try { const text = fs.readFileSync(databasePath).toString('utf8'); if (!text.includes('host_fingerprint') && !text.includes('ssh_server')) return; fs.renameSync(databasePath, path.join(path.dirname(databasePath), `vinpearl-ssh-archive-${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`)); } catch { /* Existing DB stays intact if it cannot be inspected. */ } }

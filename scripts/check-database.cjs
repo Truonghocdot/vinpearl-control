@@ -21,7 +21,7 @@ async function main() {
     assert.equal(modern.udid, '00008101-001D48683E88001E');
     assert.equal(listDevices().length, 3);
     assert.throws(() => createDevice({ displayName: 'Invalid', udid: 'bad', bundleId: 'net.cloudhms.booking.vinpearl' }));
-    assert.throws(() => createDevice({ displayName: 'Port clash', udid: 'd'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl', wdaLocalPort: 8100 }), /8100/);
+    assert.throws(() => createDevice({ displayName: 'Port clash', udid: 'd'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl', wdaLocalPort: 8100 }), /Port 8100 trên Mac đang được "Phone A" dùng\. Để trống ô port để tự cấp \(port còn trống: 8103\)/);
     // IP devices attach to the WDA on the iPhone: they default to its port 8100 and may share it, but not an address.
     const wifi = createDevice({ displayName: 'Phone Wi-Fi', udid: 'e'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl', connectionType: 'ip', ipAddress: ' 192.168.1.20 ' });
     assert.deepEqual([wifi.connectionType, wifi.ipAddress, wifi.wdaLocalPort], ['ip', '192.168.1.20', 8100]);
