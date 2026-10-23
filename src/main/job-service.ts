@@ -1,18 +1,22 @@
 import { AppiumAutomationEngine } from './appium-engine';
 import type { AppiumSession } from './appium-client';
 import { getCampaign, getDevice, saveJobRun, saveUiHierarchy, setDeviceStatus, updateDeviceHealth, updateDeviceWda, validateCampaignInputs, type Campaign, type Device, type UiHierarchyCapture } from './database';
+import { usesGoIos } from './go-ios';
 import type { WdaPreparation } from './wda-preparer';
 import { vinClubWorkflow } from './workflow-template';
 import { runWorkflowLive, type WorkflowDefinition, type WorkflowRun } from './workflow-runner';
 
 export type DeviceHealth = { appiumReady: boolean; deviceReady: boolean; capabilities: string[]; message?: string };
+export type WdaPreparerLike = { iosVersion(udid: string): Promise<string>; prepare(device: { udid: string }): Promise<WdaPreparation> };
+// A free-team profile lasts 7 days: re-sign during the health check once less than a day is left.
+const AUTO_RESIGN_MS = 86_400_000;
 
 export class JobService {
   private readonly activeByDevice = new Map<number, { controller: AbortController; session?: AppiumSession }>();
   private activeCount = 0;
   private readonly waiters: Array<() => void> = [];
 
-  constructor(private readonly engine: AppiumAutomationEngine, private readonly concurrency = 4, private readonly wdaPreparer?: { prepare(device: { udid: string }): Promise<WdaPreparation> }) {}
+  constructor(private readonly engine: AppiumAutomationEngine, private readonly concurrency = 4, private readonly wdaPreparer?: WdaPreparerLike) {}
 
   // Builds, patches and installs WDA (go-ios devices), then drops the running WDA so the next check uses the new build.
   async prepareWda(deviceId: number): Promise<{ device: Device; message: string }> {
@@ -21,9 +25,7 @@ export class JobService {
     const device = getDevice(deviceId); const controller = new AbortController();
     this.activeByDevice.set(deviceId, { controller });
     try {
-      await this.engine.forgetDevice(device.udid);
-      const prepared = await this.wdaPreparer.prepare(device);
-      updateDeviceWda(deviceId, { iosVersion: prepared.iosVersion, wdaBundleId: prepared.wdaBundleId, wdaExpiresAt: prepared.wdaExpiresAt });
+      const prepared = await this.prepareDevice(device, this.wdaPreparer);
       // The device must pass a health check against the new WDA before it runs again.
       return { device: setDeviceStatus(deviceId, 'unknown'), message: prepared.message };
     } catch (error) { setDeviceStatus(deviceId, 'error', error instanceof Error ? error.message : 'Không thể chuẩn bị WDA.'); throw error; }
@@ -32,8 +34,28 @@ export class JobService {
 
   async checkDevice(deviceId: number): Promise<DeviceHealth> {
     if (this.activeByDevice.has(deviceId)) throw new Error('Không thể health check khi thiết bị đang có job chạy.');
-    const device = getDevice(deviceId);
-    try { const appiumReady = await this.engine.health(); if (!appiumReady) throw new Error('Appium local chưa sẵn sàng.'); await this.engine.acquireSession(device, { restartApp: false }); updateDeviceHealth(device.id, { status: 'ready', pairingStatus: 'paired', capabilities: [...this.engine.capabilities], lastError: null }); return { appiumReady: true, deviceReady: true, capabilities: [...this.engine.capabilities] }; } catch (error) { const message = error instanceof Error ? error.message : 'Không thể kiểm tra thiết bị.'; updateDeviceHealth(device.id, { status: 'error', pairingStatus: 'unpaired', capabilities: [], lastError: message }); return { appiumReady: false, deviceReady: false, capabilities: [], message }; }
+    let device = getDevice(deviceId);
+    try { const appiumReady = await this.engine.health(); if (!appiumReady) throw new Error('Appium local chưa sẵn sàng.'); device = await this.autoPrepareWda(device); await this.engine.acquireSession(device, { restartApp: false }); updateDeviceHealth(device.id, { status: 'ready', pairingStatus: 'paired', capabilities: [...this.engine.capabilities], lastError: null }); return { appiumReady: true, deviceReady: true, capabilities: [...this.engine.capabilities] }; } catch (error) { const message = error instanceof Error ? error.message : 'Không thể kiểm tra thiết bị.'; updateDeviceHealth(device.id, { status: 'error', pairingStatus: 'unpaired', capabilities: [], lastError: message }); return { appiumReady: false, deviceReady: false, capabilities: [], message }; }
+  }
+
+  private async prepareDevice(device: Device, preparer: WdaPreparerLike) {
+    await this.engine.forgetDevice(device.udid);
+    const prepared = await preparer.prepare(device);
+    return { device: updateDeviceWda(device.id, { iosVersion: prepared.iosVersion, wdaBundleId: prepared.wdaBundleId, wdaExpiresAt: prepared.wdaExpiresAt }), message: prepared.message };
+  }
+
+  // Plugging an iPhone in and pressing "Kiểm tra" is enough: the first check reads its iOS version and, for iOS < 17,
+  // builds, signs and installs WDA; later checks re-sign a profile about to expire. Devices go-ios cannot see (e.g. an
+  // iOS 17+ phone paired only through Xcode) keep Appium's own WDA launch.
+  private async autoPrepareWda(device: Device): Promise<Device> {
+    if (!this.wdaPreparer) return device;
+    const expiresAt = device.wdaBundleId && device.wdaExpiresAt ? Date.parse(device.wdaExpiresAt) : null;
+    if (device.iosVersion !== null && (expiresAt === null || expiresAt - Date.now() > AUTO_RESIGN_MS)) return device;
+    const iosVersion = await this.wdaPreparer.iosVersion(device.udid).catch(() => null);
+    if (iosVersion === null) { if (expiresAt !== null && expiresAt <= Date.now()) throw new Error('Profile WDA đã hết hạn và go-ios không thấy iPhone để ký lại. Cắm cáp, mở khóa máy rồi kiểm tra lại.'); return device; }
+    if (!usesGoIos(iosVersion)) return updateDeviceWda(device.id, { iosVersion, wdaBundleId: null, wdaExpiresAt: null });
+    // A re-sign that fails while the current profile is still valid must not take a working device down.
+    try { return (await this.prepareDevice(device, this.wdaPreparer)).device; } catch (error) { if (expiresAt !== null && expiresAt > Date.now()) return device; throw error; }
   }
 
   async captureUiHierarchy(deviceId: number): Promise<UiHierarchyCapture> {

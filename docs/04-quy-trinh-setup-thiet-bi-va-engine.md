@@ -34,7 +34,9 @@ Máy IP luôn dùng URL của chính nó; `VINPEARL_WDA_URL` (nếu đặt) ch�
 
 Xcode 26.4 trở đi không chạy được XCUITest trên máy thật iOS 15/16 (`Logic Testing Unavailable`, kèm log `build number ""`), nên Appium không tự khởi động WDA trên các máy này được. Ứng dụng dùng [go-ios](https://github.com/danielpaulus/go-ios) (bản 1.3.2, tải về `vendor/go-ios/ios` khi `npm install`, đóng gói vào app) để chạy WDA thay cho xcodebuild:
 
-1. Cắm iPhone, mở khóa, rồi bấm **Chuẩn bị WDA** trên dòng thiết bị. Ứng dụng đọc phiên bản iOS bằng go-ios; máy iOS 17+ giữ cách cũ (Appium tự build WDA). Với iOS 16 trở xuống:
+Thường chỉ cần cắm iPhone, mở khóa và bấm **Kiểm tra**: lần kiểm tra đầu tiên tự đọc phiên bản iOS và tự chuẩn bị WDA cho máy iOS 16 trở xuống (khoảng 35 giây), các lần sau tự ký lại khi profile còn dưới 1 ngày (ký lại lỗi mà profile còn hạn thì vẫn chạy tiếp). Máy go-ios không thấy được (ví dụ chỉ ghép đôi Wi-Fi qua Xcode) giữ cách Appium tự chạy WDA. Nút **Chuẩn bị WDA** làm việc tương tự theo yêu cầu:
+
+1. Cắm iPhone, mở khóa, rồi bấm **Chuẩn bị WDA** (hoặc **Kiểm tra**) trên dòng thiết bị. Ứng dụng đọc phiên bản iOS bằng go-ios; máy iOS 17+ giữ cách cũ (Appium tự build WDA). Với iOS 16 trở xuống:
    - build WebDriverAgent của Appium (`~/.appium/.../appium-webdriveragent`, hoặc `VINPEARL_WDA_PROJECT`) bằng `xcodebuild build-for-testing -destination id=<UDID> -allowProvisioningUpdates` vào `<userData>/wda/<UDID>` (log: `xcodebuild.log`), dùng `VINPEARL_XCODE_ORG_ID` làm Team;
    - chép `lib_TestingInterop.dylib` và `_Testing_Foundation.framework` từ Xcode vào app WDA (Xcode 26 liên kết runner với Swift Testing, thứ iOS 15/16 không có), ký lại bằng đúng chứng chỉ và entitlements Xcode đã dùng;
    - kiểm tra provisioning profile có UDID máy, ghi lại hạn của profile, rồi cài bằng `ios install`.
@@ -42,6 +44,10 @@ Xcode 26.4 trở đi không chạy được XCUITest trên máy thật iOS 15/16
 3. WDA sống theo tiến trình `ios runwda`: khi nó thoát (WDA crash, rút cáp), ứng dụng tự chạy lại với thời gian chờ tăng dần; lỗi liên tiếp quá 5 lần thì dừng thử và báo lỗi trên dòng thiết bị, lần **Kiểm tra**/chạy sau sẽ thử lại từ đầu. Session Appium gắn với WDA cũ được bỏ và tạo lại. Thoát ứng dụng sẽ dừng mọi `ios runwda`.
 
 Bundle ID của WDA lấy theo project WDA (team miễn phí không đăng ký được `com.facebook.*`, phải đổi trong Xcode). Profile của team miễn phí chỉ có hạn 7 ngày: ứng dụng cảnh báo trước 2 ngày và từ chối chạy khi đã hết hạn; bấm **Chuẩn bị WDA** để build và ký lại. Lần đầu ký lại, macOS có thể hỏi quyền cho `codesign` dùng khóa trong Keychain (chọn Always Allow).
+
+Repo có sẵn một bản WDA build không ký tại [prebuilt/wda](../prebuilt/wda/README.md) (WDA 16.15.0, Xcode 26.6, iOS 15+, đã vá Swift Testing), đã thử ký lại và chạy trên iPhone 7 mà không cần xcodebuild. Ứng dụng hiện vẫn build WDA bằng xcodebuild khi chuẩn bị, vì với team miễn phí chỉ Xcode mới đăng ký được UDID mới vào profile; bản build sẵn là nền cho việc chạy trên máy không có Xcode.
+
+Giới hạn khi muốn cắm iPhone vào Linux/Windows: build WDA cần macOS + Xcode (nên mới có bản build sẵn), nhưng **ký** cho một iPhone mới cần profile có UDID của máy. Team miễn phí chỉ tạo được profile qua Xcode trên Mac (hạn 7 ngày); muốn tự động trên mọi hệ điều hành cần tài khoản Apple Developer trả phí (App Store Connect API đăng ký UDID và tạo profile) hoặc chứng chỉ Enterprise. iOS 17+ qua go-ios còn cần `ios tunnel start` (quyền admin). Ứng dụng Electron hiện chỉ đóng gói cho macOS.
 
 Mode IP với máy go-ios: Appium gắn thẳng vào `http://<ip>:<port>`, nhưng `ios runwda` vẫn cần kết nối thiết bị (cáp, hoặc ghép đôi Wi-Fi qua Finder › "Show this iPhone when on Wi-Fi"); mất kết nối đó thì WDA dừng theo.
 

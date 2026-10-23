@@ -7,7 +7,8 @@ const initSqlJs = require('sql.js');
 const { usesGoIos, goIosError } = require('../dist-electron/src/main/go-ios.js');
 const { WdaSupervisor } = require('../dist-electron/src/main/wda-supervisor.js');
 const { AppiumAutomationEngine } = require('../dist-electron/src/main/appium-engine.js');
-const { initializeDatabase, closeDatabase, createDevice, listDevices, updateDeviceWda } = require('../dist-electron/src/main/database.js');
+const { initializeDatabase, closeDatabase, createDevice, getDevice, listDevices, updateDeviceWda } = require('../dist-electron/src/main/database.js');
+const { JobService } = require('../dist-electron/src/main/job-service.js');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function fakeProcesses() {
@@ -96,14 +97,43 @@ async function checkDatabase() {
     const prepared = updateDeviceWda(phone.id, { iosVersion: '15.8.8', wdaBundleId: 'net.example.WebDriverAgentRunner.xctrunner', wdaExpiresAt: '2026-10-29T09:22:27.000Z' });
     assert.deepEqual([prepared.iosVersion, prepared.wdaBundleId, prepared.wdaExpiresAt], ['15.8.8', 'net.example.WebDriverAgentRunner.xctrunner', '2026-10-29T09:22:27.000Z']);
     assert.ok(prepared.wdaPreparedAt);
+    await checkAutoPrepare();
     closeDatabase();
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+}
+
+// "Kiểm tra" prepares WDA by itself: first check of an iOS < 17 phone, and a profile with less than a day left.
+async function checkAutoPrepare() {
+  const versions = { ['1'.repeat(40)]: '15.8.8', ['2'.repeat(40)]: '26.6.2' }; const prepared = []; let failPrepare = false;
+  const preparer = { iosVersion: async (udid) => { if (!versions[udid]) throw new Error('Device not found'); return versions[udid]; }, prepare: async (device) => { prepared.push(device.udid); if (failPrepare) throw new Error('xcodebuild lỗi'); return { iosVersion: versions[device.udid], wdaBundleId: 'net.example.WebDriverAgentRunner.xctrunner', wdaExpiresAt: new Date(Date.now() + 6 * 86_400_000).toISOString(), message: 'ok' }; } };
+  const sessions = []; const engine = { capabilities: ['launchApp'], health: async () => true, forgetDevice: async () => undefined, acquireSession: async (device) => { sessions.push(device); return { id: 's' }; } };
+  const jobs = new JobService(engine, 4, preparer);
+  const old = createDevice({ displayName: 'iPhone 7', udid: '1'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl' });
+  assert.equal((await jobs.checkDevice(old.id)).deviceReady, true);
+  assert.deepEqual(prepared, ['1'.repeat(40)], 'First check of an iOS 15 phone builds and installs WDA.');
+  assert.equal(sessions.at(-1).wdaBundleId, 'net.example.WebDriverAgentRunner.xctrunner', 'The session uses the WDA just installed.');
+  await jobs.checkDevice(old.id); assert.equal(prepared.length, 1, 'A fresh profile is not re-signed.');
+  const modern = createDevice({ displayName: 'iPhone 12', udid: '2'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl' });
+  await jobs.checkDevice(modern.id);
+  assert.deepEqual([prepared.length, getDevice(modern.id).iosVersion, getDevice(modern.id).wdaBundleId], [1, '26.6.2', null], 'iOS 17+ only records its version; Appium launches WDA.');
+  const unseen = createDevice({ displayName: 'Wi-Fi only', udid: '3'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl' });
+  assert.equal((await jobs.checkDevice(unseen.id)).deviceReady, true, 'A phone go-ios cannot see keeps the Appium path.');
+  updateDeviceWda(old.id, { iosVersion: '15.8.8', wdaBundleId: 'net.example.WebDriverAgentRunner.xctrunner', wdaExpiresAt: new Date(Date.now() + 3_600_000).toISOString() });
+  failPrepare = true;
+  assert.equal((await jobs.checkDevice(old.id)).deviceReady, true, 'A failed re-sign keeps a still-valid profile working.');
+  assert.equal(prepared.length, 2);
+  failPrepare = false; await jobs.checkDevice(old.id);
+  assert.ok(Date.parse(getDevice(old.id).wdaExpiresAt) > Date.now() + 5 * 86_400_000, 'A profile with under a day left is re-signed.');
+  updateDeviceWda(old.id, { iosVersion: '15.8.8', wdaBundleId: 'net.example.WebDriverAgentRunner.xctrunner', wdaExpiresAt: new Date(Date.now() - 1_000).toISOString() });
+  failPrepare = true;
+  const expired = await jobs.checkDevice(old.id);
+  assert.equal(expired.deviceReady, false); assert.match(expired.message, /xcodebuild lỗi/, 'An expired profile that cannot be re-signed fails the check.');
 }
 
 async function main() {
   assert.deepEqual(['15.8.8', '16.7.10', '17.0', '26.6.2', '', null].map(usesGoIos), [true, true, false, false, false, false]);
   assert.equal(goIosError('{"level":"WARN","msg":"agent"}\n{"level":"ERROR","msg":"Device not found: X","err":"Is it attached?"}\n'), 'Device not found: X: Is it attached?');
   await checkSupervisor(); await checkEngine(); await checkDatabase();
-  console.log('wda check ok: go-ios for iOS < 17, runner + forward, auto-restart with give-up, new session after WDA restart, expired profile guard, WDA columns migration');
+  console.log('wda check ok: go-ios for iOS < 17, runner + forward, auto-restart with give-up, new session after WDA restart, expired profile guard, auto-prepare on health check, WDA columns migration');
 }
 main().catch((error) => { console.error(error); process.exit(1); });

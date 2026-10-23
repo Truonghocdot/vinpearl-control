@@ -1,0 +1,21 @@
+{
+  "wdaVersion": "16.15.0",
+  "xcodeVersion": "26.6",
+  "xcodeBuild": "17F113",
+  "builtAt": "2026-10-23T17:24:14.210Z",
+  "minimumIosVersion": "15.0",
+  "architectures": [
+    "arm64"
+  ],
+  "bundleIds": {
+    "runner": "com.facebook.WebDriverAgentRunner.xctrunner",
+    "xctest": "com.facebook.WebDriverAgentRunner"
+  },
+  "xctestConfig": "WebDriverAgentRunner.xctest",
+  "embeddedSwiftTesting": [
+    "lib_TestingInterop.dylib",
+    "_Testing_Foundation.framework"
+  ],
+  "signed": false,
+  "sha256": "c104ff9c7a0d83af5c6f04dda6ee7060c1e659ae754c7624116ae2725707bea2"
+}

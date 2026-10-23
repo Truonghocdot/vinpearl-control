@@ -13,6 +13,7 @@ const SWIFT_TESTING_EXTRAS = ['usr/lib/lib_TestingInterop.dylib', 'Library/Frame
 // Builds Appium's WebDriverAgent for one iPhone, makes it launchable on old iOS and installs it with go-ios.
 export class WdaPreparer {
   constructor(private readonly rootPath: string, private readonly teamId?: string) {}
+  iosVersion(udid: string) { return deviceIosVersion(udid); }
 
   async prepare(device: { udid: string }): Promise<WdaPreparation> {
     const iosVersion = await deviceIosVersion(device.udid);
