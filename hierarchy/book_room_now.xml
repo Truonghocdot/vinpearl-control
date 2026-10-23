@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+  <XCUIElementTypeApplication type="XCUIElementTypeApplication" name="MyVinpearl" label="MyVinpearl" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="" processId="1757" bundleId="net.cloudhms.booking.vinpearl">
+    <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+            <XCUIElementTypeNavigationBar type="XCUIElementTypeNavigationBar" name="Tổng kết hành trình" enabled="true" visible="true" accessible="false" x="0" y="50" width="375" height="54" index="0" traits="">
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="ic back gray" label="ic back gray" enabled="true" visible="true" accessible="true" x="20" y="54" width="36" height="36" index="0" traits="Button"/>
+              <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Tổng kết hành trình" name="Tổng kết hành trình" label="Tổng kết hành trình" enabled="true" visible="true" accessible="true" x="110" y="61" width="155" height="22" index="1" traits="Header"/>
+            </XCUIElementTypeNavigationBar>
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="1" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+                  <XCUIElementTypeTable type="XCUIElementTypeTable" enabled="true" visible="true" accessible="false" x="0" y="104" width="375" height="605" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" name="Thông tin khách sạn" enabled="true" visible="true" accessible="false" x="0" y="104" width="375" height="58" index="0" traits="">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thông tin khách sạn" name="Thông tin khách sạn" label="Thông tin khách sạn" enabled="true" visible="true" accessible="true" x="44" y="125" width="145" height="20" index="0" traits="Header"/>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="0" y="162" width="375" height="78" index="1" traits="">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="16/01/27 - 17/01/27 (1 đêm)" name="16/01/27 - 17/01/27 (1 đêm)" label="16/01/27 - 17/01/27 (1 đêm)" enabled="true" visible="true" accessible="true" x="16" y="182" width="343" height="18" index="0" traits="StaticText"/>
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Người lớn / Trẻ em / Em bé: 1 / 0 / 0" name="Người lớn / Trẻ em / Em bé: 1 / 0 / 0" label="Người lớn / Trẻ em / Em bé: 1 / 0 / 0" enabled="true" visible="true" accessible="true" x="16" y="203" width="343" height="17" index="1" traits="StaticText"/>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="162" width="375" height="78" index="2" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="162" width="375" height="78" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="8" y="239" width="374" height="1" index="3" traits=""/>
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Vinpearl Ha Tinh Affiliated by Meliá" name="Vinpearl Ha Tinh Affiliated by Meliá" label="Vinpearl Ha Tinh Affiliated by Meliá" enabled="true" visible="true" accessible="true" x="16" y="162" width="343" height="17" index="4" traits="StaticText"/>
+                    </XCUIElementTypeCell>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="240" width="375" height="9" index="2" traits=""/>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" name="Thông tin phòng" enabled="true" visible="true" accessible="false" x="0" y="248" width="375" height="59" index="3" traits="">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thông tin phòng" name="Thông tin phòng" label="Thông tin phòng" enabled="true" visible="true" accessible="true" x="44" y="269" width="117" height="20" index="0" traits="Header, StaticText"/>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="0" y="306" width="375" height="61" index="4" traits="">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="20 điểm" name="20 điểm" label="20 điểm" enabled="true" visible="true" accessible="true" x="259" y="316" width="100" height="17" index="0" traits="StaticText"/>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="306" width="375" height="61" index="1" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="306" width="375" height="61" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="8" y="434" width="374" height="2" index="2" traits=""/>
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Phòng 1: Deluxe Twin" name="Phòng 1: Deluxe Twin" label="Phòng 1: Deluxe Twin" enabled="true" visible="true" accessible="true" x="16" y="316" width="243" height="17" index="3" traits="StaticText"/>
+                    </XCUIElementTypeCell>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="366" width="375" height="9" index="5" traits=""/>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="false" accessible="false" x="342" y="104" width="30" height="605" index="6" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="369" y="422" width="3" height="284" index="0" traits=""/>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="false" accessible="false" x="0" y="676" width="375" height="30" index="7" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="3" y="703" width="369" height="3" index="0" traits=""/>
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeTable>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="709" width="375" height="69" index="1" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="709" width="375" height="69" index="0" traits=""/>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="719" width="202" height="42" index="1" traits="">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Tổng điểm (Bao gồm thuế &amp; phí)" name="Tổng điểm (Bao gồm thuế &amp; phí)" label="Tổng điểm (Bao gồm thuế &amp; phí)" enabled="true" visible="true" accessible="true" x="16" y="719" width="202" height="17" index="0" traits="StaticText"/>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="739" width="202" height="22" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="20" name="20" label="20" enabled="true" visible="true" accessible="true" x="16" y="739" width="21" height="22" index="0" traits="StaticText"/>
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="điểm" name="điểm" label="điểm" enabled="true" visible="true" accessible="true" x="41" y="739" width="177" height="22" index="1" traits="StaticText"/>
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeButton type="XCUIElementTypeButton" name="Đặt ngay" label="Đặt ngay" enabled="true" visible="true" accessible="true" x="234" y="724" width="125" height="40" index="2" traits="Button">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Đặt ngay" name="Đặt ngay" label="Đặt ngay" enabled="true" visible="true" accessible="false" x="265" y="734" width="63" height="20" index="0" traits="StaticText"/>
+                    </XCUIElementTypeButton>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="2" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits=""/>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeWindow>
+    <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits=""/>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeWindow>
+  </XCUIElementTypeApplication>
+</AppiumAUT>

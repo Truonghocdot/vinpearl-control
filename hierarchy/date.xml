@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+  <XCUIElementTypeApplication type="XCUIElementTypeApplication" name="MyVinpearl" label="MyVinpearl" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="" processId="1757" bundleId="net.cloudhms.booking.vinpearl">
+    <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+                  <XCUIElementTypeNavigationBar type="XCUIElementTypeNavigationBar" name="Chọn ngày" enabled="true" visible="true" accessible="false" x="0" y="50" width="375" height="54" index="0" traits="">
+                    <XCUIElementTypeButton type="XCUIElementTypeButton" name="ic back gray" label="ic back gray" enabled="true" visible="true" accessible="true" x="20" y="54" width="36" height="36" index="0" traits="Button"/>
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Chọn ngày" name="Chọn ngày" label="Chọn ngày" enabled="true" visible="true" accessible="true" x="144" y="61" width="86" height="22" index="1" traits="Header"/>
+                  </XCUIElementTypeNavigationBar>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="104" width="375" height="616" index="1" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="104" width="375" height="60" index="0" traits="">
+                      <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" enabled="true" visible="true" accessible="false" x="0" y="124" width="375" height="40" index="0" traits="">
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="124" width="49" height="40" index="0" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 2" name="Thứ 2" label="Thứ 2" enabled="true" visible="true" accessible="true" x="16" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="124" width="49" height="40" index="1" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 3" name="Thứ 3" label="Thứ 3" enabled="true" visible="true" accessible="true" x="65" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="124" width="49" height="40" index="2" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 4" name="Thứ 4" label="Thứ 4" enabled="true" visible="true" accessible="true" x="114" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="124" width="49" height="40" index="3" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 5" name="Thứ 5" label="Thứ 5" enabled="true" visible="true" accessible="true" x="163" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="124" width="49" height="40" index="4" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 6" name="Thứ 6" label="Thứ 6" enabled="true" visible="true" accessible="true" x="212" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="124" width="49" height="40" index="5" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Thứ 7" name="Thứ 7" label="Thứ 7" enabled="true" visible="true" accessible="true" x="261" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="124" width="49" height="40" index="6" traits="">
+                          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="CN" name="CN" label="CN" enabled="true" visible="true" accessible="true" x="310" y="124" width="49" height="40" index="0" traits="StaticText"/>
+                        </XCUIElementTypeCell>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="342" y="124" width="30" height="40" index="7" traits="Adjustable">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="369" y="154" width="3" height="7" index="0" traits=""/>
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="141" width="375" height="20" index="8" traits="Adjustable">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="385" y="158" width="26" height="3" index="0" traits=""/>
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="342" y="124" width="30" height="40" index="9" traits="Adjustable">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="369" y="154" width="3" height="7" index="0" traits=""/>
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="141" width="375" height="20" index="10" traits="Adjustable">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="385" y="158" width="26" height="3" index="0" traits=""/>
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeCollectionView>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" enabled="true" visible="true" accessible="false" x="0" y="164" width="375" height="556" index="1" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="164" width="343" height="50" index="0" traits="Header">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Tháng 10 - 2026" name="Tháng 10 - 2026" label="Tháng 10 - 2026" enabled="true" visible="true" accessible="true" x="16" y="164" width="343" height="50" index="0" traits="StaticText"/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="214" width="49" height="40" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="13" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="65" y="214" width="49" height="40" index="2" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="62" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="114" y="214" width="49" height="40" index="3" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="111" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="214" width="49" height="40" index="4" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="1" name="1" label="1" enabled="true" visible="true" accessible="true" x="160" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="214" width="49" height="40" index="5" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2" name="2" label="2" enabled="true" visible="true" accessible="true" x="209" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="214" width="49" height="40" index="6" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="3" name="3" label="3" enabled="true" visible="true" accessible="true" x="258" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="214" width="49" height="40" index="7" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="4" name="4" label="4" enabled="true" visible="true" accessible="true" x="307" y="214" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="258" width="49" height="40" index="8" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="5" name="5" label="5" enabled="true" visible="true" accessible="true" x="13" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="258" width="49" height="40" index="9" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="6" name="6" label="6" enabled="true" visible="true" accessible="true" x="62" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="258" width="49" height="40" index="10" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="7" name="7" label="7" enabled="true" visible="true" accessible="true" x="111" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="258" width="49" height="40" index="11" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="8" name="8" label="8" enabled="true" visible="true" accessible="true" x="160" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="258" width="49" height="40" index="12" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="9" name="9" label="9" enabled="true" visible="true" accessible="true" x="209" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="258" width="49" height="40" index="13" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="10" name="10" label="10" enabled="true" visible="true" accessible="true" x="258" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="258" width="49" height="40" index="14" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="11" name="11" label="11" enabled="true" visible="true" accessible="true" x="307" y="258" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="302" width="49" height="40" index="15" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="12" name="12" label="12" enabled="true" visible="true" accessible="true" x="13" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="302" width="49" height="40" index="16" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="13" name="13" label="13" enabled="true" visible="true" accessible="true" x="62" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="302" width="49" height="40" index="17" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="14" name="14" label="14" enabled="true" visible="true" accessible="true" x="111" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="302" width="49" height="40" index="18" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15" name="15" label="15" enabled="true" visible="true" accessible="true" x="160" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="302" width="49" height="40" index="19" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="16" name="16" label="16" enabled="true" visible="true" accessible="true" x="209" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="302" width="49" height="40" index="20" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="17" name="17" label="17" enabled="true" visible="true" accessible="true" x="258" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="302" width="49" height="40" index="21" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="18" name="18" label="18" enabled="true" visible="true" accessible="true" x="307" y="302" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="346" width="49" height="40" index="22" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="19" name="19" label="19" enabled="true" visible="true" accessible="true" x="13" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="346" width="49" height="40" index="23" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="20" name="20" label="20" enabled="true" visible="true" accessible="true" x="62" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="346" width="49" height="40" index="24" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="21" name="21" label="21" enabled="true" visible="true" accessible="true" x="111" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="346" width="49" height="40" index="25" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="22" name="22" label="22" enabled="true" visible="true" accessible="true" x="160" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="167" y="346" width="41" height="40" index="1" traits=""/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="346" width="49" height="40" index="26" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="23" name="23" label="23" enabled="true" visible="true" accessible="true" x="209" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="216" y="346" width="41" height="40" index="1" traits=""/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="216" y="346" width="41" height="40" index="2" traits=""/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="236" y="346" width="25" height="40" index="3" traits=""/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="346" width="49" height="40" index="27" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="24" name="24" label="24" enabled="true" visible="true" accessible="true" x="258" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="261" y="346" width="25" height="40" index="1" traits=""/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="265" y="346" width="41" height="40" index="2" traits=""/>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="265" y="346" width="41" height="40" index="3" traits=""/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="346" width="49" height="40" index="28" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="25" name="25" label="25" enabled="true" visible="true" accessible="true" x="307" y="346" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="390" width="49" height="40" index="29" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="26" name="26" label="26" enabled="true" visible="true" accessible="true" x="13" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="390" width="49" height="40" index="30" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="27" name="27" label="27" enabled="true" visible="true" accessible="true" x="62" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="390" width="49" height="40" index="31" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="28" name="28" label="28" enabled="true" visible="true" accessible="true" x="111" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="390" width="49" height="40" index="32" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="29" name="29" label="29" enabled="true" visible="true" accessible="true" x="160" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="390" width="49" height="40" index="33" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="30" name="30" label="30" enabled="true" visible="true" accessible="true" x="209" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="390" width="49" height="40" index="34" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="31" name="31" label="31" enabled="true" visible="true" accessible="true" x="258" y="390" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="430" width="343" height="50" index="35" traits="Header">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Tháng 11 - 2026" name="Tháng 11 - 2026" label="Tháng 11 - 2026" enabled="true" visible="true" accessible="true" x="16" y="430" width="343" height="50" index="0" traits="StaticText"/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="480" width="49" height="40" index="36" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="13" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="65" y="480" width="49" height="40" index="37" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="62" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="114" y="480" width="49" height="40" index="38" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="111" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="163" y="480" width="49" height="40" index="39" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="160" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="212" y="480" width="49" height="40" index="40" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="209" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="261" y="480" width="49" height="40" index="41" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="true" accessible="false" x="258" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="480" width="49" height="40" index="42" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="1" name="1" label="1" enabled="true" visible="true" accessible="true" x="307" y="480" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="524" width="49" height="40" index="43" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2" name="2" label="2" enabled="true" visible="true" accessible="true" x="13" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="524" width="49" height="40" index="44" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="3" name="3" label="3" enabled="true" visible="true" accessible="true" x="62" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="524" width="49" height="40" index="45" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="4" name="4" label="4" enabled="true" visible="true" accessible="true" x="111" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="524" width="49" height="40" index="46" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="5" name="5" label="5" enabled="true" visible="true" accessible="true" x="160" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="524" width="49" height="40" index="47" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="6" name="6" label="6" enabled="true" visible="true" accessible="true" x="209" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="524" width="49" height="40" index="48" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="7" name="7" label="7" enabled="true" visible="true" accessible="true" x="258" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="524" width="49" height="40" index="49" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="8" name="8" label="8" enabled="true" visible="true" accessible="true" x="307" y="524" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="568" width="49" height="40" index="50" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="9" name="9" label="9" enabled="true" visible="true" accessible="true" x="13" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="568" width="49" height="40" index="51" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="10" name="10" label="10" enabled="true" visible="true" accessible="true" x="62" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="568" width="49" height="40" index="52" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="11" name="11" label="11" enabled="true" visible="true" accessible="true" x="111" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="568" width="49" height="40" index="53" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="12" name="12" label="12" enabled="true" visible="true" accessible="true" x="160" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="568" width="49" height="40" index="54" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="13" name="13" label="13" enabled="true" visible="true" accessible="true" x="209" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="568" width="49" height="40" index="55" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="14" name="14" label="14" enabled="true" visible="true" accessible="true" x="258" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="568" width="49" height="40" index="56" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="15" name="15" label="15" enabled="true" visible="true" accessible="true" x="307" y="568" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="612" width="49" height="40" index="57" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="16" name="16" label="16" enabled="true" visible="true" accessible="true" x="13" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="612" width="49" height="40" index="58" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="17" name="17" label="17" enabled="true" visible="true" accessible="true" x="62" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="612" width="49" height="40" index="59" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="18" name="18" label="18" enabled="true" visible="true" accessible="true" x="111" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="612" width="49" height="40" index="60" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="19" name="19" label="19" enabled="true" visible="true" accessible="true" x="160" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="612" width="49" height="40" index="61" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="20" name="20" label="20" enabled="true" visible="true" accessible="true" x="209" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="612" width="49" height="40" index="62" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="21" name="21" label="21" enabled="true" visible="true" accessible="true" x="258" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="612" width="49" height="40" index="63" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="22" name="22" label="22" enabled="true" visible="true" accessible="true" x="307" y="612" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="656" width="49" height="40" index="64" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="23" name="23" label="23" enabled="true" visible="true" accessible="true" x="13" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="65" y="656" width="49" height="40" index="65" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="24" name="24" label="24" enabled="true" visible="true" accessible="true" x="62" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="114" y="656" width="49" height="40" index="66" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="25" name="25" label="25" enabled="true" visible="true" accessible="true" x="111" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="163" y="656" width="49" height="40" index="67" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="26" name="26" label="26" enabled="true" visible="true" accessible="true" x="160" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="212" y="656" width="49" height="40" index="68" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="27" name="27" label="27" enabled="true" visible="true" accessible="true" x="209" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="261" y="656" width="49" height="40" index="69" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="28" name="28" label="28" enabled="true" visible="true" accessible="true" x="258" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="310" y="656" width="49" height="40" index="70" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="29" name="29" label="29" enabled="true" visible="true" accessible="true" x="307" y="656" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="true" x="16" y="700" width="49" height="40" index="71" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="30" name="30" label="30" enabled="true" visible="true" accessible="true" x="13" y="700" width="55" height="40" index="0" traits="StaticText"/>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 19 pages" label="Vertical scroll bar, 19 pages" enabled="true" visible="true" accessible="false" x="342" y="164" width="30" height="556" index="72" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="369" y="167" width="3" height="42" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="687" width="375" height="30" index="73" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="714" width="405" height="3" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 19 pages" label="Vertical scroll bar, 19 pages" enabled="true" visible="true" accessible="false" x="342" y="164" width="30" height="556" index="74" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="369" y="167" width="3" height="42" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="687" width="375" height="30" index="75" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="714" width="405" height="3" index="0" traits=""/>
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeCollectionView>
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="Xác nhận 1 đêm" label="Xác nhận 1 đêm" enabled="true" visible="true" accessible="true" x="16" y="720" width="343" height="48" index="2" traits="Button">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Xác nhận 1 đêm" name="Xác nhận 1 đêm" label="Xác nhận 1 đêm" enabled="true" visible="true" accessible="false" x="129" y="734" width="117" height="20" index="0" traits="StaticText"/>
+                  </XCUIElementTypeButton>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="1" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits=""/>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeWindow>
+    <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="375" height="812" index="0" traits=""/>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeWindow>
+  </XCUIElementTypeApplication>
+</AppiumAUT>

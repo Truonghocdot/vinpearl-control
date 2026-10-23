@@ -1,6 +1,6 @@
 # Action VinClub và selector profile
 
-Workflow mẫu mở VinClub, đăng nhập, tìm khách sạn, chọn ngày/số khách, kiểm tra giá phòng rồi dừng an toàn trước thao tác đặt phòng. Đây là definition có version và không chứa password.
+Engine booking cố định mở VinClub, đăng nhập, tìm khách sạn, chọn ngày/số khách, kiểm tra giá phòng rồi dừng an toàn trước thao tác đặt phòng. Campaign chỉ cung cấp input, không chứa password.
 
 ## Quy tắc selector
 
@@ -12,7 +12,7 @@ Không dùng tọa độ touch làm selector production. Mỗi bản VinClub c�
 
 ## Capability hiện có
 
-`launchApp`, `waitForText`, `tapText`, `inputText`, `assertText` và `screenshot` gọi primitive Appium/XCUITest. `selectDate` và `selectGuests` vẫn là macro bị capability gate chặn cho tới khi xác minh selector profile trên iPhone test.
+`launchApp`, `waitForText`, `tapText`, `inputText`, `assertText` và `screenshot` gọi primitive Appium/XCUITest. `tapText` chờ element xuất hiện (mặc định 10 giây hoặc `timeoutMs` của step) rồi mới chạm. Runner cho mỗi step thêm 5 giây so với `timeoutMs` để lỗi selector cụ thể được báo trước khi hết thời gian của step. `selectDate` và `selectGuests` dùng macro selector profile từ cây WDA đã capture: counter theo cấu trúc cell số khách, lịch cuộn theo tiêu đề tháng rồi chọn ngày trong đúng block tháng.
 
 ## Safety
 

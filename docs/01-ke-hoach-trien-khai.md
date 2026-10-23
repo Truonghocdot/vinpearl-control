@@ -18,4 +18,4 @@ Mac chạy Electron cục bộ và điều khiển nhiều iPhone USB bằng App
 - iPhone chỉ là `ready` sau health check tạo/đóng Appium session thành công.
 - Password chỉ nằm ở macOS Keychain; không xuất hiện trong SQLite, renderer hoặc log.
 - Một job luôn cleanup session; lỗi lưu log đã redaction và screenshot best-effort.
-- Workflow dừng tại safe-stop trước booking/payment.
+- Campaign dừng tại safe-stop trước booking/payment.

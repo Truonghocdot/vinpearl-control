@@ -9,10 +9,12 @@
     "build": "tsc -p tsconfig.node.json && vite build",
     "start": "node scripts/run-electron.cjs",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
-    "check:workflow": "node scripts/check-workflow.cjs",
+    "check:booking": "node scripts/check-booking.cjs",
+    "check:vinclub-adapter": "node scripts/check-vinclub-adapter.cjs",
+    "check:session-bootstrap": "node scripts/check-session-bootstrap.cjs",
     "check:appium": "node scripts/check-appium.cjs",
     "check:database": "node scripts/check-database.cjs",
-    "check": "npm run typecheck && npm run build && npm run check:workflow && npm run check:appium && npm run check:database",
+    "check": "npm run typecheck && npm run build && npm run check:booking && npm run check:appium && npm run check:vinclub-adapter && npm run check:session-bootstrap && npm run check:database",
     "package:mac": "npm run build && electron-builder --mac dmg"
   },
   "dependencies": {
