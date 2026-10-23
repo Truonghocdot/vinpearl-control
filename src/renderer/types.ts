@@ -1,6 +1,7 @@
 export type DeviceStatus = 'unknown' | 'ready' | 'offline' | 'busy' | 'error';
 export type DeviceConnection = 'usb' | 'ip';
-export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: DeviceConnection; ipAddress: string | null; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null };
+export type Device = { id: number; displayName: string; udid: string; bundleId: string; connectionType: DeviceConnection; ipAddress: string | null; status: DeviceStatus; pairingStatus: 'unknown' | 'paired' | 'unpaired'; capabilities: string[]; wdaLocalPort: number; lastCheckedAt: string | null; lastError: string | null; iosVersion: string | null; wdaBundleId: string | null; wdaExpiresAt: string | null; wdaPreparedAt: string | null; wdaProcess?: WdaProcessState | null };
+export type WdaProcessState = { state: 'starting' | 'running' | 'restarting' | 'error' | 'stopped'; url: string; generation: number; restarts: number; lastError: string | null };
 export type DeviceInput = { displayName: string; udid: string; bundleId: string; connectionType: DeviceConnection; ipAddress?: string; wdaLocalPort?: number };
 export type CampaignTarget = { deviceId: number };
 export type CampaignInputs = {
@@ -26,7 +27,7 @@ export type WorkflowRun = { id: number; workflowId: string; deviceId?: number; c
 export type JobRunSummary = Pick<WorkflowRun, 'id' | 'workflowId' | 'deviceId' | 'campaignId' | 'engine' | 'status' | 'startedAt' | 'finishedAt'> & { workflowName: string; deviceName: string; campaignName: string | null };
 export type DesktopApi = {
   getAppInfo: () => Promise<{ name: string; version: string; platform: string; appiumPort: number }>;
-  listDevices: () => Promise<Device[]>; createDevice: (input: DeviceInput) => Promise<Device>; updateDevice: (input: { id: number; device: DeviceInput }) => Promise<Device>; checkDevice: (deviceId: number) => Promise<DeviceHealth>; captureUiHierarchy: (deviceId: number) => Promise<UiHierarchyCapture>;
+  listDevices: () => Promise<Device[]>; createDevice: (input: DeviceInput) => Promise<Device>; updateDevice: (input: { id: number; device: DeviceInput }) => Promise<Device>; checkDevice: (deviceId: number) => Promise<DeviceHealth>; captureUiHierarchy: (deviceId: number) => Promise<UiHierarchyCapture>; prepareWda: (deviceId: number) => Promise<{ device: Device; message: string }>;
   listCampaigns: () => Promise<Campaign[]>; createCampaign: (input: CampaignInput) => Promise<Campaign>; updateCampaign: (input: { id: number; campaign: CampaignInput }) => Promise<Campaign>; runCampaign: (campaignId: number) => Promise<WorkflowRun[]>;
   listJobRuns: () => Promise<JobRunSummary[]>; getJobRun: (jobRunId: number) => Promise<WorkflowRun>; readJobArtifact: (input: { jobRunId: number; step: number; kind: 'screenshot' | 'hierarchy' }) => Promise<JobArtifact>; cancelJob: (deviceId: number) => Promise<boolean>;
 };

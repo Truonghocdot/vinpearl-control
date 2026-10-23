@@ -1,14 +1,19 @@
 import { AppiumClient, type AppiumElementSelector, type AppiumSession } from './appium-client';
 import type { VinClubActionAdapter } from './vinclub-action-adapter';
 import type { WorkflowStep } from './workflow-runner';
+import type { WdaAttach, WdaTarget } from './wda-supervisor';
 
 export const appiumCapabilities = ['launchApp', 'ensureHome', 'waitForText', 'tapText', 'inputText', 'assertText', 'screenshot'] as const;
-export type AppiumDevice = { udid: string; bundleId: string; wdaLocalPort: number; connectionType?: 'usb' | 'ip'; ipAddress?: string | null };
+// wdaBundleId is set once "Chuẩn bị WDA" installed WDA for go-ios (iOS < 17); those devices never let Appium launch WDA.
+export type AppiumDevice = { udid: string; bundleId: string; wdaLocalPort: number; connectionType?: 'usb' | 'ip'; ipAddress?: string | null; wdaBundleId?: string | null; wdaExpiresAt?: string | null };
+export type WdaLauncher = { ensure(target: WdaTarget): Promise<WdaAttach>; stop(udid: string): void; stopAll(): void };
 
 export class AppiumAutomationEngine {
   readonly capabilities: readonly string[];
-  constructor(private readonly client = new AppiumClient(), private readonly vinClubAdapter?: VinClubActionAdapter) { this.capabilities = vinClubAdapter ? [...appiumCapabilities, 'selectDate', 'selectGuests'] : appiumCapabilities; }
+  constructor(private readonly client = new AppiumClient(), private readonly vinClubAdapter?: VinClubActionAdapter, private readonly wda?: WdaLauncher) { this.capabilities = vinClubAdapter ? [...appiumCapabilities, 'selectDate', 'selectGuests'] : appiumCapabilities; }
   private readonly warm = new Map<string, AppiumSession>();
+  // A restarted go-ios WDA no longer knows the sessions attached to the previous one.
+  private readonly wdaGenerations = new Map<string, number>();
   // Devices start their sessions one at a time: concurrent WDA launches share Xcode's DerivedData and can fail on its build lock.
   // Only session creation (~4s) is serialised; runs on warm sessions proceed in parallel.
   private creating: Promise<unknown> = Promise.resolve();
@@ -20,26 +25,43 @@ export class AppiumAutomationEngine {
   // restartApp=false keeps the current screen (UI tree capture, health check).
   async acquireSession(device: AppiumDevice, options: { restartApp?: boolean } = {}) {
     const restartApp = options.restartApp ?? true;
+    const wda = await this.attachWda(device);
     const cached = this.warm.get(device.udid);
-    if (cached && cached.bundleId === device.bundleId && await this.client.isAlive(cached.id)) { if (restartApp) await this.client.restartApp(cached); return cached; }
+    const sameWda = wda?.generation === undefined || this.wdaGenerations.get(device.udid) === wda.generation;
+    if (cached && sameWda && cached.bundleId === device.bundleId && await this.client.isAlive(cached.id)) { if (restartApp) await this.client.restartApp(cached); return cached; }
     this.warm.delete(device.udid);
     if (cached) await this.client.deleteSession(cached.id).catch(() => undefined);
-    const ip = device.connectionType === 'ip' ? device.ipAddress : null; const webDriverAgentUrl = ip ? `http://${ip}:${device.wdaLocalPort}` : undefined;
-    const wda = ip ? await this.client.wdaStatus(ip, device.wdaLocalPort) : undefined;
-    if (wda === null) throw new Error(`Không kết nối được WDA tại ${webDriverAgentUrl}. Mở WebDriverAgent trên iPhone và kiểm tra Mac cùng mạng với máy.`);
-    const create = this.creating.then(() => this.client.createSession(device.udid, device.bundleId, device.wdaLocalPort, { noReset: !restartApp, webDriverAgentUrl, platformVersion: wda?.platformVersion }));
+    const create = this.creating.then(() => this.client.createSession(device.udid, device.bundleId, device.wdaLocalPort, { noReset: !restartApp, webDriverAgentUrl: wda?.url, platformVersion: wda?.platformVersion }));
     this.creating = create.catch(() => undefined);
     const session = await create;
-    // IP sessions never reset the app on start, so a run restarts it through WDA like a warm session.
-    if (ip && restartApp) await this.client.restartApp(session);
+    // Sessions attached to a running WDA never reset the app on start, so a run restarts it through WDA like a warm session.
+    if (wda && restartApp) await this.client.restartApp(session);
     this.warm.set(device.udid, session);
+    if (wda?.generation !== undefined) this.wdaGenerations.set(device.udid, wda.generation);
     return session;
+  }
+  // go-ios devices get their WDA started (or restarted) here; plain IP devices must already run one.
+  private async attachWda(device: AppiumDevice): Promise<{ url: string; platformVersion?: string; generation?: number } | undefined> {
+    if (device.wdaBundleId && this.wda) {
+      if (device.wdaExpiresAt && Date.parse(device.wdaExpiresAt) <= Date.now()) throw new Error(`Profile WDA đã hết hạn ngày ${new Date(device.wdaExpiresAt).toLocaleString('vi-VN')}. Bấm "Chuẩn bị WDA" để ký lại.`);
+      return this.wda.ensure({ udid: device.udid, wdaBundleId: device.wdaBundleId, connectionType: device.connectionType, ipAddress: device.ipAddress, wdaLocalPort: device.wdaLocalPort });
+    }
+    const ip = device.connectionType === 'ip' ? device.ipAddress : null;
+    if (!ip) return undefined;
+    const url = `http://${ip}:${device.wdaLocalPort}`; const status = await this.client.wdaStatus(ip, device.wdaLocalPort);
+    if (!status) throw new Error(`Không kết nối được WDA tại ${url}. Mở WebDriverAgent trên iPhone và kiểm tra Mac cùng mạng với máy.`);
+    return { url, platformVersion: status.platformVersion };
+  }
+  // A newly installed WDA replaces the running one: drop its session and runner so the next use starts fresh.
+  async forgetDevice(udid: string) {
+    const cached = this.warm.get(udid); this.warm.delete(udid); this.wdaGenerations.delete(udid); this.wda?.stop(udid);
+    if (cached) await this.client.deleteSession(cached.id).catch(() => undefined);
   }
   async discardSession(session: AppiumSession) {
     for (const [udid, cached] of this.warm) if (cached.id === session.id) this.warm.delete(udid);
     await this.client.deleteSession(session.id).catch(() => undefined);
   }
-  async closeAll() { const sessions = [...this.warm.values()]; this.warm.clear(); await Promise.all(sessions.map((session) => this.client.deleteSession(session.id).catch(() => undefined))); }
+  async closeAll() { const sessions = [...this.warm.values()]; this.warm.clear(); await Promise.all(sessions.map((session) => this.client.deleteSession(session.id).catch(() => undefined))); this.wda?.stopAll(); }
   async captureUiHierarchy(device: AppiumDevice) { const session = await this.acquireSession(device, { restartApp: false }); return this.client.getPageSource(session.id); }
   async execute(session: AppiumSession, step: WorkflowStep, variables: Record<string, unknown>) {
     const sessionId = session.id;

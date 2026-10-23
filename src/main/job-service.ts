@@ -1,6 +1,7 @@
 import { AppiumAutomationEngine } from './appium-engine';
 import type { AppiumSession } from './appium-client';
-import { getCampaign, getDevice, saveJobRun, saveUiHierarchy, setDeviceStatus, updateDeviceHealth, validateCampaignInputs, type Campaign, type Device, type UiHierarchyCapture } from './database';
+import { getCampaign, getDevice, saveJobRun, saveUiHierarchy, setDeviceStatus, updateDeviceHealth, updateDeviceWda, validateCampaignInputs, type Campaign, type Device, type UiHierarchyCapture } from './database';
+import type { WdaPreparation } from './wda-preparer';
 import { vinClubWorkflow } from './workflow-template';
 import { runWorkflowLive, type WorkflowDefinition, type WorkflowRun } from './workflow-runner';
 
@@ -11,7 +12,23 @@ export class JobService {
   private activeCount = 0;
   private readonly waiters: Array<() => void> = [];
 
-  constructor(private readonly engine: AppiumAutomationEngine, private readonly concurrency = 4) {}
+  constructor(private readonly engine: AppiumAutomationEngine, private readonly concurrency = 4, private readonly wdaPreparer?: { prepare(device: { udid: string }): Promise<WdaPreparation> }) {}
+
+  // Builds, patches and installs WDA (go-ios devices), then drops the running WDA so the next check uses the new build.
+  async prepareWda(deviceId: number): Promise<{ device: Device; message: string }> {
+    if (!this.wdaPreparer) throw new Error('Chưa cấu hình chuẩn bị WDA.');
+    if (this.activeByDevice.has(deviceId)) throw new Error('Không thể chuẩn bị WDA khi thiết bị đang có job chạy.');
+    const device = getDevice(deviceId); const controller = new AbortController();
+    this.activeByDevice.set(deviceId, { controller });
+    try {
+      await this.engine.forgetDevice(device.udid);
+      const prepared = await this.wdaPreparer.prepare(device);
+      updateDeviceWda(deviceId, { iosVersion: prepared.iosVersion, wdaBundleId: prepared.wdaBundleId, wdaExpiresAt: prepared.wdaExpiresAt });
+      // The device must pass a health check against the new WDA before it runs again.
+      return { device: setDeviceStatus(deviceId, 'unknown'), message: prepared.message };
+    } catch (error) { setDeviceStatus(deviceId, 'error', error instanceof Error ? error.message : 'Không thể chuẩn bị WDA.'); throw error; }
+    finally { this.activeByDevice.delete(deviceId); }
+  }
 
   async checkDevice(deviceId: number): Promise<DeviceHealth> {
     if (this.activeByDevice.has(deviceId)) throw new Error('Không thể health check khi thiết bị đang có job chạy.');

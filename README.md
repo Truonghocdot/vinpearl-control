@@ -9,6 +9,7 @@ Electron macOS
   -> Appium 2 (127.0.0.1:4723)
   -> XCUITest / WebDriverAgent
   -> iPhone đã pair/trust (USB, hoặc IP: WDA chạy sẵn trên iPhone)
+     (iOS 16 trở xuống: WDA do go-ios chạy, xem docs/04)
   -> VinClub
 ```
 
@@ -17,7 +18,7 @@ SQLite có hai nguồn dữ liệu: `devices` (UDID, kiểu kết nối `usb`/`i
 ## Chuẩn bị macOS
 
 1. Cài Xcode, mở một lần và pair/trust iPhone bằng USB; bật Developer Mode nếu iOS yêu cầu.
-2. Cài Node.js rồi chạy `npm install`.
+2. Cài Node.js rồi chạy `npm install` (tự tải go-ios 1.3.2 vào `vendor/go-ios/ios`, đã kiểm tra checksum).
 3. Cài Appium 2 và driver XCUITest:
 
 ```bash
@@ -26,7 +27,7 @@ appium driver install xcuitest
 appium --address 127.0.0.1 --port 4723
 ```
 
-4. Build/sign WebDriverAgent theo provisioning profile của thiết bị. Appium phải tạo được session với UDID thật trước khi chạy Live.
+4. Build/sign WebDriverAgent theo provisioning profile của thiết bị. Appium phải tạo được session với UDID thật trước khi chạy Live. iPhone iOS 16 trở xuống (ví dụ iPhone 7) không chạy được WDA qua Xcode 26.4+: bấm **Chuẩn bị WDA** trên dòng thiết bị để ứng dụng build, vá và cài WDA rồi chạy nó bằng go-ios ([docs/04](docs/04-quy-trinh-setup-thiet-bi-va-engine.md#wda-cho-ios-16-trở-xuống-go-ios)).
 
 Đặt Team ID để Appium tự ký/chạy WDA:
 

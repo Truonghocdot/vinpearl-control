@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('desktopApi', {
   updateDevice: (input: { id: number; device: DeviceInput }): Promise<Device> => ipcRenderer.invoke('devices:update', input),
   checkDevice: (deviceId: number): Promise<DeviceHealth> => ipcRenderer.invoke('devices:check', deviceId),
   captureUiHierarchy: (deviceId: number): Promise<UiHierarchyCapture> => ipcRenderer.invoke('devices:capture-hierarchy', deviceId),
+  prepareWda: (deviceId: number): Promise<{ device: Device; message: string }> => ipcRenderer.invoke('devices:prepare-wda', deviceId),
   listCampaigns: (): Promise<Campaign[]> => ipcRenderer.invoke('campaigns:list'),
   createCampaign: (input: CampaignInput): Promise<Campaign> => ipcRenderer.invoke('campaigns:create', input),
   updateCampaign: (input: { id: number; campaign: CampaignInput }): Promise<Campaign> => ipcRenderer.invoke('campaigns:update', input),

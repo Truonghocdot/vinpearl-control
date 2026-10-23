@@ -5,6 +5,7 @@
   "description": "macOS desktop manager for authorized iPhones through local Appium/XCUITest",
   "main": "dist-electron/src/main/index.js",
   "scripts": {
+    "postinstall": "node scripts/fetch-go-ios.cjs",
     "dev": "node scripts/dev.cjs",
     "build": "tsc -p tsconfig.node.json && vite build",
     "start": "node scripts/run-electron.cjs",
@@ -14,8 +15,9 @@
     "check:session-bootstrap": "node scripts/check-session-bootstrap.cjs",
     "check:appium": "node scripts/check-appium.cjs",
     "check:database": "node scripts/check-database.cjs",
-    "check": "npm run typecheck && npm run build && npm run check:booking && npm run check:appium && npm run check:vinclub-adapter && npm run check:session-bootstrap && npm run check:database",
-    "package:mac": "npm run build && electron-builder --mac dmg"
+    "check:wda": "node scripts/check-wda.cjs",
+    "check": "npm run typecheck && npm run build && npm run check:booking && npm run check:appium && npm run check:vinclub-adapter && npm run check:session-bootstrap && npm run check:database && npm run check:wda",
+    "package:mac": "node scripts/fetch-go-ios.cjs --required && npm run build && electron-builder --mac dmg"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -44,6 +46,12 @@
       "dist-electron/**/*",
       "package.json",
       "node_modules/sql.js/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/go-ios/ios",
+        "to": "go-ios/ios"
+      }
     ],
     "mac": {
       "target": "dmg",

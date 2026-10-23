@@ -30,6 +30,21 @@ Cáp chỉ cần để **khởi động WDA**: iOS chỉ cho máy đã pair/trus
 
 Máy IP luôn dùng URL của chính nó; `VINPEARL_WDA_URL` (nếu đặt) chỉ áp cho máy USB.
 
+## WDA cho iOS 16 trở xuống (go-ios)
+
+Xcode 26.4 trở đi không chạy được XCUITest trên máy thật iOS 15/16 (`Logic Testing Unavailable`, kèm log `build number ""`), nên Appium không tự khởi động WDA trên các máy này được. Ứng dụng dùng [go-ios](https://github.com/danielpaulus/go-ios) (bản 1.3.2, tải về `vendor/go-ios/ios` khi `npm install`, đóng gói vào app) để chạy WDA thay cho xcodebuild:
+
+1. Cắm iPhone, mở khóa, rồi bấm **Chuẩn bị WDA** trên dòng thiết bị. Ứng dụng đọc phiên bản iOS bằng go-ios; máy iOS 17+ giữ cách cũ (Appium tự build WDA). Với iOS 16 trở xuống:
+   - build WebDriverAgent của Appium (`~/.appium/.../appium-webdriveragent`, hoặc `VINPEARL_WDA_PROJECT`) bằng `xcodebuild build-for-testing -destination id=<UDID> -allowProvisioningUpdates` vào `<userData>/wda/<UDID>` (log: `xcodebuild.log`), dùng `VINPEARL_XCODE_ORG_ID` làm Team;
+   - chép `lib_TestingInterop.dylib` và `_Testing_Foundation.framework` từ Xcode vào app WDA (Xcode 26 liên kết runner với Swift Testing, thứ iOS 15/16 không có), ký lại bằng đúng chứng chỉ và entitlements Xcode đã dùng;
+   - kiểm tra provisioning profile có UDID máy, ghi lại hạn của profile, rồi cài bằng `ios install`.
+2. Bấm **Kiểm tra**. Ứng dụng chạy `ios runwda` (máy USB thêm `ios forward <wdaLocalPort> 8100`), chờ `/status` của WDA, rồi Appium gắn vào qua `webDriverAgentUrl` như mode IP.
+3. WDA sống theo tiến trình `ios runwda`: khi nó thoát (WDA crash, rút cáp), ứng dụng tự chạy lại với thời gian chờ tăng dần; lỗi liên tiếp quá 5 lần thì dừng thử và báo lỗi trên dòng thiết bị, lần **Kiểm tra**/chạy sau sẽ thử lại từ đầu. Session Appium gắn với WDA cũ được bỏ và tạo lại. Thoát ứng dụng sẽ dừng mọi `ios runwda`.
+
+Bundle ID của WDA lấy theo project WDA (team miễn phí không đăng ký được `com.facebook.*`, phải đổi trong Xcode). Profile của team miễn phí chỉ có hạn 7 ngày: ứng dụng cảnh báo trước 2 ngày và từ chối chạy khi đã hết hạn; bấm **Chuẩn bị WDA** để build và ký lại. Lần đầu ký lại, macOS có thể hỏi quyền cho `codesign` dùng khóa trong Keychain (chọn Always Allow).
+
+Mode IP với máy go-ios: Appium gắn thẳng vào `http://<ip>:<port>`, nhưng `ios runwda` vẫn cần kết nối thiết bị (cáp, hoặc ghép đôi Wi-Fi qua Finder › "Show this iPhone when on Wi-Fi"); mất kết nối đó thì WDA dừng theo.
+
 ## Chạy nhiều iPhone
 
 - Mỗi iPhone cần làm đủ các bước trên: pair/trust, Developer Mode, tin cậy certificate WDA, đăng nhập MyVinpearl bằng tài khoản riêng, rồi bấm **Kiểm tra** trong ứng dụng. Mỗi máy có WDA port riêng (8100, 8101, …) và MJPEG port = WDA port + 1000.
@@ -51,5 +66,7 @@ Mỗi campaign dùng một action sequence booking cố định và truyền inp
 - Device unpaired/offline: mở khóa iPhone, trust lại Mac, kiểm tra USB và Xcode.
 - WDA signing/provisioning lỗi: sửa Team/profile trong WDA rồi thử session lại.
 - Port WDA trùng: đổi `wdaLocalPort` của thiết bị USB; database tự cấp dải 8100+ khi đăng ký (máy IP không chiếm port của Mac).
+- Chuẩn bị WDA báo profile chưa có UDID: mở Xcode với iPhone đang cắm (Devices and Simulators) để Xcode đăng ký máy vào team, rồi chuẩn bị lại.
+- Máy go-ios báo "WDA không khởi động được": iPhone bị khóa/mất kết nối, profile hết hạn hoặc chứng chỉ chưa được tin cậy trên máy (Cài đặt › Cài đặt chung › Quản lý VPN & Thiết bị).
 - Máy IP báo không kết nối được WDA: WDA đã dừng trên iPhone, iPhone đổi IP hoặc Mac khác mạng; khởi động lại WDA và sửa IP trong Device Manager.
 - Thiếu capability: Live run bị khóa, dùng Preview và cập nhật selector profile trước.
