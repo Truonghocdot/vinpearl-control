@@ -37,3 +37,11 @@ button { cursor: pointer; }
 .device-table { table-layout: fixed; }.device-table th, .device-table td { padding: 12px 14px; vertical-align: top; }.device-table .col-connection { width: 118px; }.device-table .col-wda { width: 150px; }.device-table .col-actions { width: 200px; }.device-table td small { line-height: 1.45; overflow-wrap: anywhere; }.device-table code { word-break: break-all; }.device-table code.nowrap { word-break: normal; white-space: nowrap; }.device-table td small code { font-size: 10px; }
 .device-error { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .device-table .row-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }.device-table .row-actions .compact-button { width: 100%; padding: 7px 4px; }
+/* Narrow windows: wide tables keep their layout and scroll sideways. The scrollbar is styled so it stays visible
+   (macOS overlay scrollbars hide until scrolled) and the actions column sticks to the right edge while scrolling. */
+.device-table { min-width: 860px; }.campaign-table > table { min-width: 940px; }.campaign-table td:nth-child(4), .campaign-table td:nth-child(4) small { white-space: nowrap; }
+.table-wrap::-webkit-scrollbar, .location-list::-webkit-scrollbar { height: 12px; }
+.table-wrap::-webkit-scrollbar-track, .location-list::-webkit-scrollbar-track { background: #f1f4f8; }
+.table-wrap::-webkit-scrollbar-thumb, .location-list::-webkit-scrollbar-thumb { border: 3px solid #f1f4f8; border-radius: 6px; background: #b6c1cd; }
+.table-wrap::-webkit-scrollbar-thumb:hover, .location-list::-webkit-scrollbar-thumb:hover { background: #8c99a8; }
+.table-wrap th:last-child, .table-wrap td:last-child { position: sticky; right: 0; z-index: 1; background: #fff; box-shadow: -1px 0 0 #edf1f4, -8px 0 8px -8px rgb(23 36 55 / 18%); }.table-wrap th:last-child { background: #f7f9fb; }
