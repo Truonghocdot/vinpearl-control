@@ -1,8 +1,8 @@
-import { AppiumClient, DRAG_SLOP, type AppiumElementSelector, type AppiumSession, type ElementRect } from './appium-client';
+import { AppiumClient, DRAG_SLOP, offsetIntoView, type AppiumElementSelector, type AppiumSession, type ElementRect } from './appium-client';
 import type { WorkflowStep } from './workflow-runner';
 
 export type VinClubSelectorProfile = {
-  date: { open: AppiumElementSelector; dayInMonth: (monthLabel: string, day: number) => { xpath: string }; confirm: AppiumElementSelector };
+  date: { open: AppiumElementSelector; title: AppiumElementSelector; dayInMonth: (monthLabel: string, day: number) => { xpath: string }; confirm: AppiumElementSelector };
   guests: { open: AppiumElementSelector; rooms: CounterButtons; adults: CounterButtons; children: CounterButtons; infants: CounterButtons; confirm: AppiumElementSelector };
 };
 
@@ -14,6 +14,8 @@ export const vinClubSelectorProfile: VinClubSelectorProfile = {
   date: {
     // The label sits on the date button and lets touches through; an accessibility id lookup is ~0.15s cheaper than the button's xpath.
     open: { text: 'Nhận phòng' },
+    // Title of the calendar sheet; not on the search form.
+    title: { text: 'Chọn ngày' },
     // The day is scoped to the immediately preceding month header, so identical days in adjacent months cannot collide.
     dayInMonth: (monthLabel, day) => ({ xpath: `//XCUIElementTypeCell[XCUIElementTypeStaticText[@name=${xpathString(day)}] and preceding-sibling::XCUIElementTypeOther[1][XCUIElementTypeStaticText[@name=${xpathString(monthLabel)}]]]` }),
     // Fallback when the exact "Xác nhận N đêm" label is not found.
@@ -96,13 +98,29 @@ export class VinClubActionAdapter {
     const start = parseDate(checkIn, 'checkIn'); const end = parseDate(checkOut, 'checkOut');
     if (end <= start) throw new Error('checkOut phải sau checkIn.');
     const nights = Math.round((end.getTime() - start.getTime()) / DAY_MS);
-    await this.client.click(sessionId, this.profile.date.open);
+    await this.openCalendar(sessionId);
     const frame = await this.calendarFrame(sessionId);
     await this.pickDay(sessionId, start, frame, await this.openingHeaders(sessionId));
     // The app defaults the stay to one night after a check-in tap, so check-out is only tapped for longer stays.
     if (nights > 1) await this.pickDay(sessionId, end, frame);
     // The form is not re-read afterwards: drags stop without momentum, so the day cell found on the still calendar is the one tapped.
     if (!await this.tapExact(sessionId, `Xác nhận ${nights} đêm`)) await this.client.click(sessionId, this.profile.date.confirm);
+  }
+
+  // Without idle waits a tap during the previous transition is dropped (seen on iPhone 7 right after the guest step), so the
+  // sheet's title confirms the calendar opened and a missing sheet gets another tap.
+  private async openCalendar(sessionId: string) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await this.client.click(sessionId, this.profile.date.open);
+      if (await this.appears(sessionId, this.profile.date.title, attempt ? 4_000 : 2_000)) return;
+    }
+    throw new Error('Đã chạm "Nhận phòng" 3 lần nhưng lịch chọn ngày không mở.');
+  }
+
+  private async appears(sessionId: string, selector: AppiumElementSelector, timeoutMs: number) {
+    for (const started = Date.now(); ;) {
+      try { await this.client.find(sessionId, selector); return true; } catch { if (Date.now() - started > timeoutMs) return false; await sleep(150); }
+    }
   }
 
   // The weekday row is also a collection view; the calendar is the tall one.
@@ -171,7 +189,7 @@ function sleep(ms: number) { return new Promise((resolve) => setTimeout(resolve,
 function monthIndex(year: number, month: number) { return year * 12 + month - 1; }
 // Calendar layout (Monday first): a 50px month header, then week rows every 44px with 40px-high day cells.
 // Only used to plan the drag; the cell's real frame is checked before tapping.
-const MONTH_HEADER = 50; const WEEK_ROW = 44; const DAY_CELL = 40; const VIEW_PAD = 16;
+const MONTH_HEADER = 50; const WEEK_ROW = 44; const DAY_CELL = 40;
 function firstWeekday(index: number) { return (new Date(Date.UTC(Math.floor(index / 12), index % 12, 1)).getUTCDay() + 6) % 7; }
 function monthHeight(index: number) { const days = new Date(Date.UTC(Math.floor(index / 12), index % 12 + 1, 0)).getUTCDate(); return MONTH_HEADER + WEEK_ROW * (Math.ceil((firstWeekday(index) + days) / 7) - 1) + DAY_CELL; }
 // Pixels the content must move to bring the day's cell into view; positive means later months, 0 when already visible.
@@ -183,11 +201,6 @@ function offsetToDay(headers: MonthHeader[], date: Date, frame: ElementRect) {
   for (let index = reference.index; index < target; index += 1) headerY += monthHeight(index);
   for (let index = reference.index; index > target; index -= 1) headerY -= monthHeight(index - 1);
   return offsetIntoView(headerY + MONTH_HEADER + WEEK_ROW * Math.floor((firstWeekday(target) + date.getUTCDate() - 1) / 7), DAY_CELL, frame);
-}
-// Minimal scroll that brings [top, top + height] inside the frame, landing VIEW_PAD from the edge it enters from.
-function offsetIntoView(top: number, height: number, frame: ElementRect) {
-  if (top >= frame.y && top + height <= frame.y + frame.height) return 0;
-  return top + height > frame.y + frame.height ? top + height - (frame.y + frame.height - VIEW_PAD) : top - (frame.y + VIEW_PAD);
 }
 function formatVietnameseMonth(date: Date) { return `Tháng ${date.getUTCMonth() + 1} - ${date.getUTCFullYear()}`; }
 function xpathString(value: string | number) { return `'${String(value).replace(/'/g, "&apos;")}'`; }

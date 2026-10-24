@@ -17,10 +17,12 @@ function mockClient(state) {
   const client = {
     calls,
     // The calendar opens on the current month (October 2026 in this model).
-    click: async (_sessionId, selector) => { calls.push({ type: 'click', selector }); if (selector.text === 'Nhận phòng') state.scroll = 0; },
+    // A tap during the previous transition is dropped (`droppedOpens`), leaving the calendar closed.
+    click: async (_sessionId, selector) => { calls.push({ type: 'click', selector }); if (selector.text === 'Nhận phòng') { if (state.droppedOpens) state.droppedOpens -= 1; else { state.calendarOpen = true; state.scroll = 0; } } },
     find: async (_sessionId, selector) => {
       calls.push({ type: 'find', selector });
       const header = /^Tháng (\d+) - (\d+)$/.exec(selector.text ?? '');
+      if (selector.text === 'Chọn ngày') { if (state.calendarOpen) return element('calendar-title'); throw new Error('Calendar closed'); }
       if (header) { if (onScreen(headerTop(Number(header[2]), Number(header[1]), state.scroll), 50)) return element(selector.text); throw new Error('Header not laid out'); }
       if (selector.text) { if (state.exactLabels.includes(selector.text)) return element(selector.text); throw new Error('No exact label'); }
       if (selector.classChain?.includes('Button[6]')) return element('adults-minus');
@@ -41,7 +43,7 @@ function mockClient(state) {
       throw new Error(`Unexpected predicate ${predicate}`);
     },
     rect: async (_sessionId, target) => { const [, month, year] = /Tháng (\d+) - (\d+)/.exec(target.value.ELEMENT).map(Number); calls.push({ type: 'rect' }); return { x: 16, y: headerTop(year, month, state.scroll), width: 343, height: 50 }; },
-    tap: async (_sessionId, target) => { const id = target.value.ELEMENT; calls.push({ type: 'tap', id }); if (id === 'adults-minus') { state.adults -= 1; state.exactLabels.push(`Xác nhận (1 phòng, ${state.adults} khách)`); } },
+    tap: async (_sessionId, target) => { const id = target.value.ELEMENT; calls.push({ type: 'tap', id }); if (id.startsWith('Xác nhận ') && id.endsWith(' đêm')) state.calendarOpen = false; if (id === 'adults-minus') { state.adults -= 1; state.exactLabels.push(`Xác nhận (1 phòng, ${state.adults} khách)`); } },
     // Measured on device: at ~1px/ms the calendar moves fingerPx - 30.
     drags: async (_sessionId, rect, direction, fingers) => { calls.push({ type: 'drags', rect, direction, fingers }); const moved = fingers.reduce((sum, finger) => sum + finger - 30, 0); state.scroll += direction === 'down' ? moved : -moved; return moved; },
   };
@@ -103,7 +105,15 @@ async function main() {
   adapter.dragCalendar = plan;
   assert.equal(client.calls.filter((call) => call.type === 'drags').length, 2, 'An undershoot is corrected from the cell frame.');
   assert.deepEqual(client.calls.filter((call) => call.type === 'tap').map((call) => call.id), ['day-16', 'Xác nhận 1 đêm']);
-  console.log('vinclub adapter check ok: form-read guest counts, sheet skip, exact confirms, calendar planned from the opening month header, shortest scroll in one drag, cut-off cells nudged, check-in-only for one night');
+
+  // A dropped "Nhận phòng" tap (calendar never opens) is retried once the sheet title fails to show.
+  client.calls.length = 0; state.droppedOpens = 1;
+  await adapter.execute(session, { type: 'selectDate', checkIn: '{{checkIn}}', checkOut: '{{checkOut}}' }, { checkIn: '2027-01-16', checkOut: '2027-01-17' });
+  assert.equal(client.calls.filter((call) => call.type === 'click' && call.selector.text === 'Nhận phòng').length, 2);
+  assert.deepEqual(client.calls.filter((call) => call.type === 'tap').map((call) => call.id), ['day-16', 'Xác nhận 1 đêm']);
+  state.droppedOpens = 3;
+  await assert.rejects(adapter.execute(session, { type: 'selectDate', checkIn: '2027-01-16', checkOut: '2027-01-17' }, {}), /lịch chọn ngày không mở/);
+  console.log('vinclub adapter check ok: form-read guest counts, sheet skip, exact confirms, calendar open verified and retried, calendar planned from the opening month header, shortest scroll in one drag, cut-off cells nudged, check-in-only for one night');
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });

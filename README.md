@@ -51,6 +51,7 @@ Campaign là đơn vị cấu hình duy nhất của sản phẩm: action bookin
 
 Kịch bản Hà Tĩnh được trích từ video và dừng trước xác nhận giao dịch được mô tả tại [docs/05-kich-ban-tu-video-ha-tinh.md](docs/05-kich-ban-tu-video-ha-tinh.md).
 Schema input campaign và ví dụ `paymentYear`/`roomType` nằm tại [docs/06-schema-campaign.md](docs/06-schema-campaign.md).
+Toàn bộ lệnh chạy trên macOS, Linux, Windows (go-ios, WDA, Appium) và bảng lỗi thường gặp nằm tại [docs/07-huong-dan-lenh-mac-linux-windows.md](docs/07-huong-dan-lenh-mac-linux-windows.md).
 
 ## An toàn vận hành
 

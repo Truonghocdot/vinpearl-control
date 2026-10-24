@@ -19,7 +19,9 @@ async function main() {
     assert.equal(second.wdaLocalPort, 8101);
     assert.equal(modern.wdaLocalPort, 8102);
     assert.equal(modern.udid, '00008101-001D48683E88001E');
-    assert.equal(listDevices().length, 3);
+    // usbmuxd reports legacy 40-hex UDIDs in lower case; go-ios and Appium do not find an upper-cased one.
+    assert.equal(createDevice({ displayName: 'Legacy', udid: ' 32455544A6C51EDA56D426361DBCE796E621026C ', bundleId: 'net.cloudhms.booking.vinpearl', connectionType: 'ip', ipAddress: '10.9.9.9' }).udid, '32455544a6c51eda56d426361dbce796e621026c');
+    assert.equal(listDevices().length, 4);
     assert.throws(() => createDevice({ displayName: 'Invalid', udid: 'bad', bundleId: 'net.cloudhms.booking.vinpearl' }));
     assert.throws(() => createDevice({ displayName: 'Port clash', udid: 'd'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl', wdaLocalPort: 8100 }), /Port 8100 trên Mac đang được "Phone A" dùng\. Để trống ô port để tự cấp \(port còn trống: 8103\)/);
     // IP devices attach to the WDA on the iPhone: they default to its port 8100 and may share it, but not an address.
@@ -95,6 +97,7 @@ async function checkAccountMigration() {
     fs.writeFileSync(path.join(directory, 'vinpearl.sqlite'), Buffer.from(legacy.export())); legacy.close();
     await initializeDatabase(directory);
     assert.deepEqual(listCampaigns()[0].targets, [{ deviceId: 1 }]);
+    assert.equal(listDevices().find((device) => device.id === 1).udid, 'c'.repeat(40), 'Stored upper-case legacy UDIDs are lower-cased on open.');
     assert.deepEqual([listDevices()[0].connectionType, listDevices()[0].ipAddress, listDevices()[0].wdaLocalPort], ['usb', null, 8100], 'USB-only device tables are rebuilt to allow IP devices.');
     assert.equal(createDevice({ displayName: 'New Wi-Fi', udid: 'D'.repeat(40), bundleId: 'net.cloudhms.booking.vinpearl', connectionType: 'ip', ipAddress: '192.168.1.30' }).wdaLocalPort, 8100);
     assert.equal(listJobRuns()[0].campaignName, 'Old campaign');

@@ -126,7 +126,7 @@ function seedWorkflows() {
 // Older device tables kept a credential reference and allowed USB only, with the WDA port unique across all devices.
 function migrateDevicesTable() { const columns = tableColumns('devices'); if (columns.includes('ip_address') && !columns.includes('credential_ref')) return; database.run('PRAGMA foreign_keys = OFF'); database.run(`CREATE TABLE devices_next (${DEVICES_COLUMNS})`); database.run('INSERT INTO devices_next (id, display_name, udid, bundle_id, connection_type, status, pairing_status, capabilities_json, wda_local_port, last_checked_at, last_error, created_at, updated_at) SELECT id, display_name, udid, bundle_id, connection_type, status, pairing_status, capabilities_json, wda_local_port, last_checked_at, last_error, created_at, updated_at FROM devices'); database.run('DROP TABLE devices'); database.run('ALTER TABLE devices_next RENAME TO devices'); database.run('PRAGMA foreign_keys = ON'); }
 function migrateDeviceWdaColumns() { const columns = tableColumns('devices'); DEVICE_WDA_COLUMNS.forEach(([column]) => { if (!columns.includes(column)) database.run(`ALTER TABLE devices ADD COLUMN ${column} TEXT`); }); }
-function migrateUdidCase() { database.run('UPDATE devices SET udid = UPPER(udid) WHERE udid != UPPER(udid)'); }
+function migrateUdidCase() { database.run(`UPDATE devices SET udid = ${UDID_CASE_SQL} WHERE udid != ${UDID_CASE_SQL}`); }
 function migrateJobRunColumns() { const columns = tableColumns('job_runs'); if (!columns.includes('campaign_id')) database.run('ALTER TABLE job_runs ADD COLUMN campaign_id INTEGER'); }
 // Databases from before accounts were dropped: keep campaign targets (one per device) and run history, drop the account table.
 function migrateDropAccounts() {
@@ -145,7 +145,10 @@ function migrateDropAccounts() {
 function tableColumns(table: string) { return database.exec(`PRAGMA table_info(${table})`)[0]?.values.map((values) => String(values[1])) ?? []; }
 function migrateJobStepColumns() { const columns = database.exec('PRAGMA table_info(job_steps)')[0]?.values.map((values) => String(values[1])) ?? []; if (!columns.includes('hierarchy_path')) database.run('ALTER TABLE job_steps ADD COLUMN hierarchy_path TEXT'); }
 function isUdid(value: string) { return /^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{8}-[a-fA-F0-9]{16})$/.test(value?.trim()); }
-function canonicalUdid(value: string) { return value.trim().toUpperCase(); }
+// Write UDIDs the way usbmuxd reports them, since go-ios and Appium match them case-sensitively ("Device not found"):
+// legacy 40-hex UDIDs (iPhone XS and older) in lower case, newer XXXXXXXX-XXXXXXXXXXXXXXXX ones in upper case.
+function canonicalUdid(value: string) { const udid = value.trim(); return udid.length === 40 ? udid.toLowerCase() : udid.toUpperCase(); }
+const UDID_CASE_SQL = 'CASE WHEN length(udid) = 40 THEN lower(udid) ELSE upper(udid) END';
 function deviceValues(input: DeviceInput, current?: Device) {
   if (!input.displayName?.trim() || !isUdid(input.udid) || !input.bundleId?.trim()) throw new Error('Tên, UDID Apple hợp lệ và bundle ID là bắt buộc.');
   const connectionType = input.connectionType ?? 'usb';

@@ -11,6 +11,11 @@ const DRAG_MARGIN = 0.02;
 // WDA ports are 8100-8199 (one per device), so MJPEG ports land on 9100-9199.
 const MJPEG_PORT_OFFSET = 1000;
 export type ElementRect = { x: number; y: number; width: number; height: number };
+// Minimal scroll that brings [top, top + height] inside the frame, landing `pad` from the edge it enters from; positive scrolls down, 0 when already inside.
+export function offsetIntoView(top: number, height: number, frame: ElementRect, pad = 16) {
+  if (top >= frame.y && top + height <= frame.y + frame.height) return 0;
+  return top + height > frame.y + frame.height ? top + height - (frame.y + frame.height - pad) : top - (frame.y + pad);
+}
 export type AppiumSession = { id: string; bundleId: string; capabilities: Record<string, unknown> };
 
 export type AppiumClientOptions = {

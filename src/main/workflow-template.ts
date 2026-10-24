@@ -17,11 +17,13 @@ const SEARCH_BUTTON = "type == 'XCUIElementTypeButton' AND name == 'Tìm kiếm'
 // Appears in the footer once a rate is selected.
 const BOOK_BUTTON = "type == 'XCUIElementTypeButton' AND name == 'Đặt phòng'";
 const BOOKER_TOGGLE = "//XCUIElementTypeOther[XCUIElementTypeStaticText[@name='Tôi là người đặt']]/XCUIElementTypeButton";
+// An empty guest field shows its placeholder as its value; ticking "Tôi là người đặt" fills it from the account profile.
+const GUEST_FILLED = "//XCUIElementTypeScrollView[.//XCUIElementTypeStaticText[@name='Tôi là người đặt']]//XCUIElementTypeTextField[@placeholderValue='Họ (không dấu)' and @value!='Họ (không dấu)']";
 const TERMS = "XCUIElementTypeButton[starts-with(@name, 'Tôi đồng ý với các điều khoản')]";
 
 export const vinClubWorkflow: WorkflowDefinition = {
   id: BOOKING_FLOW_ID,
-  version: 14,
+  version: 16,
   name: 'MyVinpearl - booking an toàn trước xác nhận thanh toán',
   description: 'Kịch bản booking cố định: tìm khách sạn, chọn phòng và hoàn tất thông tin; dừng trước nút Xác nhận trong modal thanh toán.',
   bundleId: 'net.cloudhms.booking.vinpearl',
@@ -32,7 +34,8 @@ export const vinClubWorkflow: WorkflowDefinition = {
   steps: [
     { type: 'launchApp', name: 'Mở MyVinpearl' },
     { type: 'ensureHome', name: 'Chờ trang chủ (thiết bị đã đăng nhập sẵn)', timeoutMs: 30_000 },
-    { type: 'tapText', name: 'Mở khách sạn', text: 'Khách sạn' },
+    // Taps right after the home screen loads can be dropped on slower iPhones (iPhone 7); the search form's date label confirms it.
+    { type: 'tapText', name: 'Mở khách sạn', text: 'Khách sạn', until: 'Nhận phòng' },
     { type: 'selectGuests', name: 'Chọn 1 phòng, 1 người lớn', rooms: '{{rooms}}', adults: '{{adults}}', children: '{{children}}', infants: '{{infants}}' },
     { type: 'selectDate', name: 'Chọn nhận/trả phòng', checkIn: '{{checkIn}}', checkOut: '{{checkOut}}', capture: true },
     // No standalone wait/assert steps: every tap waits for its own target, and `until` checks the result (re-tapping when a tap
@@ -56,8 +59,9 @@ export const vinClubWorkflow: WorkflowDefinition = {
     { type: 'tapText', name: 'Đặt ngay', text: 'Đặt ngay' },
     // "Phòng 1: …" is also on the outgoing summary page (next to the points); the booker page's row lists the guests.
     { type: 'tapText', name: 'Mở thông tin khách phòng 1', text: 'Phòng 1: {{roomType}}', xpath: "//XCUIElementTypeCell[XCUIElementTypeStaticText[contains(@name, 'người lớn')]]/XCUIElementTypeStaticText[@name='Phòng 1: {{roomType}}']", settle: true, until: BOOKER_TOGGLE, timeoutMs: 15_000 },
-    // The checkbox image keeps its accessibility name when ticked; the "1/1" guest counter verifies the result.
-    { type: 'tapText', name: 'Dùng thông tin người đặt', text: 'Tôi là người đặt', xpath: BOOKER_TOGGLE },
+    // The toggle is in the tree while the sheet still slides up, and a tap then is dropped; "Xong" would close the sheet with
+    // the guest list still 0/1. The checkbox image keeps its accessibility name when ticked, so the filled name field verifies it.
+    { type: 'tapText', name: 'Dùng thông tin người đặt', text: 'Tôi là người đặt', xpath: BOOKER_TOGGLE, settle: true, until: GUEST_FILLED, skipIfUntil: true },
     { type: 'tapText', name: 'Lưu thông tin khách', text: 'Xong', until: '1/1', capture: true },
     { type: 'tapText', name: 'Tiếp tục đến trang xác nhận', text: 'Tiếp tục' },
     // Tap the checkbox icon itself: the row center is the terms link text. The icon keeps its name when ticked,

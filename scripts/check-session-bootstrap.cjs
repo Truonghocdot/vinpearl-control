@@ -15,17 +15,22 @@ async function main() {
   // Login is not automated: a logged-out device fails with a clear message instead of typing credentials.
   const loginClient = { find: async (_id, selector) => { if (selector.xpath === "//XCUIElementTypeButton[@name='Đăng nhập ngay']") return {}; throw new Error('Not on home'); } };
   await assert.rejects(new AppiumAutomationEngine(loginClient).execute(session, { type: 'ensureHome', timeoutMs: 300 }, {}), /chưa đăng nhập/);
-  let scrolls = 0; const taps = [];
+  // Room list on a 4.7" screen: the table ends at y=566 and the row (laid out at y=700) is only rendered after the first drag.
+  // The list moves fingerPx - 30 per drag.
+  let scrolled = 0; const drags = []; const taps = []; let rowLookups = 0;
+  const TABLE = { x: 0, y: 256, width: 375, height: 310 };
   const listClient = {
-    find: async (_id, selector) => { if (selector.xpath === '//XCUIElementTypeTable') return { value: { ELEMENT: 'table' } }; if (scrolls === 0) throw new Error('Row not rendered'); return { value: { ELEMENT: `row-${scrolls}` } }; },
-    attribute: async (_id, element) => (element.value.ELEMENT === 'row-2' ? 'true' : 'false'),
-    scroll: async (_id, direction, container, distance) => { assert.equal(direction, 'down'); assert.equal(container.value.ELEMENT, 'table'); assert.equal(distance, 0.3); scrolls += 1; },
-    rect: async () => ({ x: 0, y: 300, width: 375, height: 57 }),
+    find: async (_id, selector) => { if (selector.xpath === '//XCUIElementTypeTable') return { value: { ELEMENT: 'table' } }; rowLookups += 1; if (!scrolled) throw new Error('Row not rendered'); return { value: { ELEMENT: 'row' } }; },
+    rect: async (_id, element) => (element.value.ELEMENT === 'table' ? TABLE : { x: 234, y: 700 - scrolled, width: 125, height: 41 }),
+    dragBy: async (_id, rect, direction, fingerPx) => { assert.deepEqual(rect, TABLE); assert.equal(direction, 'down'); drags.push(Math.round(fingerPx)); scrolled += fingerPx - 30; },
     tap: async (_id, element) => { taps.push(element.value.ELEMENT); },
   };
   await new AppiumAutomationEngine(listClient).execute(session, { type: 'tapText', text: 'Chọn phòng', xpath: "//Cell[@name='{{roomType}}']", scrollContainer: '//XCUIElementTypeTable', timeoutMs: 5000 }, { roomType: 'Deluxe Twin' });
-  assert.equal(scrolls, 2);
-  assert.deepEqual(taps, ['row-2']);
+  // Half a page while the row is not rendered (149px), then exactly what brings its bottom 16px above the table's (42px).
+  assert.deepEqual(drags, [179, 72]);
+  assert.equal(700 - scrolled + 41, 566 - 16);
+  assert.equal(rowLookups, 2, 'The row is looked up once rendered, then followed by its frame.');
+  assert.deepEqual(taps, ['row']);
   // A tap dropped mid-transition is retried until the expected result appears; only `settle` steps wait for the target to stop moving.
   let roomListTaps = 0; let rects = 0;
   const transitionClient = {

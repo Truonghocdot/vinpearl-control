@@ -1,4 +1,4 @@
-import { AppiumClient, type AppiumElementSelector, type AppiumSession } from './appium-client';
+import { AppiumClient, DRAG_SLOP, offsetIntoView, type AppiumElementSelector, type AppiumSession, type ElementRect } from './appium-client';
 import type { VinClubActionAdapter } from './vinclub-action-adapter';
 import type { WorkflowStep } from './workflow-runner';
 import type { WdaAttach, WdaTarget } from './wda-supervisor';
@@ -133,14 +133,22 @@ export class AppiumAutomationEngine {
     if (carried?.key === JSON.stringify(target)) return carried.element;
     return step.scrollContainer ? this.scrollUntilVisible(sessionId, target, { xpath: interpolate(step.scrollContainer, variables) }, timeoutMs) : this.waitFor(sessionId, target, timeoutMs);
   }
-  // Lists render lazily and may hide rows below the fold, so scroll the container about half a page (finger travel plus momentum) at a time until the target is visible.
+  // Lists render lazily and may hide rows below the fold. A row already laid out below the fold (the usual case: the room list on
+  // a 4.7" iPhone) is brought into view by one drag of the distance its frame gives; drags lift without momentum, so the frame
+  // read after it is final. A row not rendered yet gets half a page at a time. The xpath lookup is the costly call (~1s on an
+  // iPhone 7), so it is not repeated while the element stays valid.
   private async scrollUntilVisible(sessionId: string, value: AppiumElementSelector, container: AppiumElementSelector, timeoutMs: number) {
-    const started = Date.now(); let scrolled = false;
+    const started = Date.now(); let frame: ElementRect | undefined; let element: unknown;
     while (Date.now() - started < timeoutMs) {
-      // After a drag the list coasts, and a tap on a moving list only stops it, so wait for the row to be still.
-      try { const element = await this.client.find(sessionId, value); if (await this.client.attribute(sessionId, element, 'visible') === 'true') { if (scrolled) await this.waitUntilStill(sessionId, element); return element; } } catch { /* Not rendered yet. */ }
-      try { await this.client.scroll(sessionId, 'down', await this.client.find(sessionId, container), 0.3); scrolled = true; } catch { /* Container still loading. */ }
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      try {
+        frame ??= await this.client.rect(sessionId, await this.client.find(sessionId, container));
+        const rect = element ? await this.client.rect(sessionId, element).catch(() => undefined) : undefined;
+        if (!rect) element = await this.client.find(sessionId, value).catch(() => undefined);
+        const target = rect ?? (element ? await this.client.rect(sessionId, element) : undefined);
+        const offset = target ? offsetIntoView(target.y, target.height, frame) : AppiumClient.maxDrag(frame) / 2;
+        if (target && !offset) return element;
+        await this.client.dragBy(sessionId, frame, offset > 0 ? 'down' : 'up', Math.abs(offset) + DRAG_SLOP);
+      } catch { await new Promise((resolve) => setTimeout(resolve, 250)); /* Container still loading. */ }
     }
     throw new Error(`Không tìm thấy selector hiển thị ${JSON.stringify(value)} sau ${timeoutMs}ms.`);
   }
